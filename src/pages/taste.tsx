@@ -102,7 +102,7 @@ export default function TastePage() {
         </h2>
         <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-taupe">
           <li>• Du nutzt SAN VINO ohne Konto. Dein Profil ist an diesen Browser gebunden – löschst du die Website-Daten, ist der Zugang weg.</li>
-          <li>• Fotos werden ohne Standortdaten privat gespeichert und zur Analyse an OpenAI übermittelt.</li>
+          <li>• Fotos werden ohne Standortdaten privat gespeichert und zur Analyse an unseren KI-Dienst (Google Gemini) übermittelt.</li>
           <li>• Dein Geschmacksprofil, Weine und Bewertungen liegen geschützt in unserer Datenbank (Supabase).</li>
         </ul>
         {!isDemo && (

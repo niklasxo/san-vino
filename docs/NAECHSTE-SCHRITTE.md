@@ -9,11 +9,9 @@
 - [x] `.claude/settings.json` mit dauerhaften Freigaben
 
 ## Offen – morgen am Computer
-0. **Entscheidung KI-Anbieter:** Niklas hat kein OpenAI-/API-Konto. Variante A: OpenAI-API-Konto anlegen
-   (platform.openai.com, Guthaben + Monatslimit). Variante B: auf Anthropic Claude API umbauen
-   (nur `supabase/functions/_server/openai.ts` + Modell-Secrets betroffen). Empfehlung: A.
-1. **OpenAI-Key** in Supabase eintragen (nicht im Chat!):
-   https://supabase.com/dashboard/project/vbleskoyqyukokkutdnx/functions/secrets → `OPENAI_API_KEY`
+0. **KI-Anbieter entschieden:** Google Gemini (kostenloser Tarif, kein Geld). OpenAI bleibt optional (`AI_PROVIDER`).
+1. **Gemini-Key (kostenlos)** holen: https://aistudio.google.com/apikey → in Supabase eintragen (nicht im Chat!):
+   https://supabase.com/dashboard/project/vbleskoyqyukokkutdnx/functions/secrets → `GEMINI_API_KEY`
 2. **Vercel-Projekt anlegen** – MCP bekam 403 (Vercel hat keinen Zugriff auf GitHub-Konto `niklasxo`):
    https://vercel.com/new → GitHub-Zugriff für `san-vino` erlauben → `niklasxo/san-vino` importieren → Vite
    Environment Variables:

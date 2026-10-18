@@ -15,7 +15,7 @@ const MESSAGES: Record<string, { title: string; text: string }> = {
   ai_unavailable: { title: "Unser Sommelier ist kurz abgelenkt", text: "Die Analyse hat gerade nicht geklappt. Versuch es bitte noch einmal." },
   ai_invalid_response: { title: "Das hat nicht ganz geklappt", text: "Die Analyse war unvollständig. Versuch es bitte noch einmal – gerne mit einem schärferen Foto." },
   ai_refused: { title: "Das Foto können wir nicht auswerten", text: "Bitte fotografiere ein Weinetikett oder eine Weinkarte." },
-  not_configured: { title: "KI noch nicht eingerichtet", text: "Der OpenAI-Schlüssel fehlt in den Supabase Secrets. Details stehen in der README." },
+  not_configured: { title: "KI noch nicht eingerichtet", text: "Der KI-Schlüssel (GEMINI_API_KEY) fehlt in den Supabase Secrets. Details stehen in der README." },
   unauthorized: { title: "Sitzung abgelaufen", text: "Lade die Seite bitte neu." },
   not_found: { title: "Nicht gefunden", text: "Diesen Eintrag gibt es nicht (mehr)." },
   function_missing: { title: "Analyse-Dienst nicht erreichbar", text: "Die Edge Function ist noch nicht bereitgestellt. Siehe README → Edge Functions." },

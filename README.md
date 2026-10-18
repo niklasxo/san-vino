@@ -6,7 +6,7 @@ Nicht der teuerste oder bekannteste Wein gewinnt, sondern der, der am besten zu 
 
 **Stack:** React 19 · TypeScript · Vite 8 · Tailwind CSS 4 · shadcn/ui-Muster (Radix, vaul, sonner) · Lucide ·
 Motion · React Router 7 · TanStack Query 5 · React Hook Form · Zod 4 · Supabase (Postgres, Anonymous Auth,
-RLS, Storage, Edge Functions) · OpenAI Responses API (multimodal, Structured Outputs) · Vitest · Testing Library · PWA
+RLS, Storage, Edge Functions) · Google Gemini API (kostenloser Tarif, multimodal, JSON-Schema; OpenAI optional) · Vitest · Testing Library · PWA
 
 ---
 
@@ -18,7 +18,7 @@ RLS, Storage, Edge Functions) · OpenAI Responses API (multimodal, Structured Ou
 5. [Datenbankmigrationen ausführen](#5-datenbankmigrationen-ausführen)
 6. [Storage](#6-storage)
 7. [Anonymous Auth aktivieren](#7-anonymous-auth-aktivieren)
-8. [OpenAI API-Key sicher hinterlegen](#8-openai-api-key-sicher-hinterlegen)
+8. [KI-Schlüssel sicher hinterlegen (kostenlos)](#8-ki-schlüssel-sicher-hinterlegen-kostenlos)
 9. [Edge Functions bereitstellen / lokal testen](#9-edge-functions-bereitstellen--lokal-testen)
 10. [App lokal starten](#10-app-lokal-starten)
 11. [Auf dem Smartphone im WLAN testen](#11-auf-dem-smartphone-im-wlan-testen)
@@ -35,7 +35,7 @@ RLS, Storage, Edge Functions) · OpenAI Responses API (multimodal, Structured Ou
 | [Node.js](https://nodejs.org) | **22 LTS** oder neuer | Frontend, Tests, Supabase CLI (über `npx`) |
 | Git | aktuell | Versionsverwaltung |
 | Supabase-Konto | kostenlos | Datenbank, Auth, Storage, Edge Functions |
-| OpenAI-Konto mit API-Key | – | Bilderkennung & Erklärungen |
+| Google-Konto (kostenloser Gemini-API-Key) | – | Bilderkennung & Erklärungen – ohne Kreditkarte |
 | *optional* Docker Desktop | aktuell | nur für `supabase functions serve` / `supabase start` lokal |
 | *optional* [Deno](https://deno.com) 2 | aktuell | Typprüfung der Edge Functions (`npm run check:functions`) |
 
@@ -74,7 +74,7 @@ cp .env.example .env.local      # danach Werte eintragen (Schritt 3)
 | Authentication → Sign In / Providers | **Allow anonymous sign-ins: an** (siehe Schritt 7) |
 | Authentication → Rate Limits | Anonyme Anmeldungen pro Stunde/IP begrenzen (z. B. 30) |
 | Authentication → URL Configuration | Site URL `http://localhost:5173` (später deine Domain) |
-| Edge Functions → Secrets | OpenAI-Key & Limits (Schritt 8) |
+| Edge Functions → Secrets | Gemini-Key & Limits (Schritt 8) |
 | *später, vor Veröffentlichung* | Authentication → Attack Protection → **CAPTCHA (Cloudflare Turnstile)** gegen Massen-Anmeldungen |
 
 ## 5. Datenbankmigrationen ausführen
@@ -110,30 +110,29 @@ nächsten Besuch wiederverwendet. Ist die Option aus, zeigt die App eine klare F
 > Zugang zu seinen Daten weg. Die Architektur ist für eine spätere Kontoverknüpfung vorbereitet
 > (`supabase.auth.updateUser({ email })` bzw. `linkIdentity()` – die `user_id` und damit alle Daten bleiben erhalten).
 
-## 8. OpenAI API-Key sicher hinterlegen
+## 8. KI-Schlüssel sicher hinterlegen (kostenlos)
 
-Der Key liegt **ausschließlich** in den Supabase Secrets und wird nur in Edge Functions gelesen.
+SAN VINO nutzt standardmäßig **Google Gemini** im kostenlosen Tarif – keine Kreditkarte nötig.
 
-```bash
-cp supabase/functions/.env.example supabase/functions/.env   # Werte eintragen (Datei wird nicht committet)
-npx supabase secrets set --env-file supabase/functions/.env
-```
-
-oder im Dashboard: **Edge Functions → Secrets → Add new secret**.
+1. Mit deinem Google-Konto auf <https://aistudio.google.com/apikey> → **Create API key** → kopieren.
+2. Supabase → **Edge Functions → Secrets** → `GEMINI_API_KEY` = dein Key (nie ins Frontend, nie in den Chat).
 
 | Secret | Pflicht | Standard | Bedeutung |
 |---|---|---|---|
-| `OPENAI_API_KEY` | ✅ | – | dein OpenAI-Key |
-| `OPENAI_MODEL` | | `gpt-5-mini` | multimodales Modell für Bild + Text. Für schwierige Weinkarten ggf. ein größeres Modell. |
-| `OPENAI_EXPLANATION_MODEL` | | = `OPENAI_MODEL` | Modell für Erklärungstexte |
-| `OPENAI_REASONING_EFFORT` | | `low` | nur für Reasoning-Modelle (gpt-5*, o*) |
-| `VINO_DAILY_SCAN_LIMIT` | | `25` | Bildanalysen pro Nutzer & 24 h (Kostenschutz) |
+| `GEMINI_API_KEY` | ✅ | – | kostenloser Key aus Google AI Studio |
+| `GEMINI_MODEL` | | `gemini-flash-latest` | Modell für Fotos (zeigt automatisch auf das aktuelle Flash-Modell) |
+| `GEMINI_TEXT_MODEL` | | = `GEMINI_MODEL` | Modell für Erklärungstexte |
+| `AI_PROVIDER` | | automatisch | `gemini` oder `openai` |
+| `OPENAI_API_KEY` / `OPENAI_MODEL` | | – | nur falls du später lieber OpenAI (kostenpflichtig) nutzt |
+| `VINO_DAILY_SCAN_LIMIT` | | `25` | Bildanalysen pro Nutzer & 24 h |
 | `VINO_DAILY_EXPLANATION_LIMIT` | | `80` | Erklärungen pro Nutzer & 24 h |
 | `VINO_ALLOWED_ORIGINS` | | `*` | erlaubte Origins (CORS), komma-separiert |
 
-`SUPABASE_URL`, `SUPABASE_ANON_KEY` und `SUPABASE_SERVICE_ROLE_KEY` stellt Supabase den Functions automatisch bereit.
+**Grenzen des Gratis-Tarifs:** Google begrenzt Anfragen pro Minute und pro Tag (im AI-Studio-Konto einsehbar).
+Für dich und ein paar Freunde reicht das gut; ist das Kontingent erschöpft, zeigt die App „Kurze Pause“ statt eines Fehlers.
+Im kostenlosen Tarif darf Google die Anfragen zur Verbesserung seiner Modelle verwenden – siehe `docs/DATENSCHUTZ.md`.
 
-**Kosten-Tipp:** Lege im OpenAI-Dashboard unter *Limits* ein monatliches Budget fest.
+`SUPABASE_URL`, `SUPABASE_ANON_KEY` und `SUPABASE_SERVICE_ROLE_KEY` stellt Supabase automatisch bereit.
 
 ## 9. Edge Functions bereitstellen / lokal testen
 
@@ -201,8 +200,8 @@ Environment Variables `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` setzen. `ver
 Checkliste vor dem Livegang:
 - [ ] Supabase Site URL / Redirect URLs auf die Domain setzen, `VINO_ALLOWED_ORIGINS` auf die Domain beschränken
 - [ ] CAPTCHA für anonyme Anmeldungen aktivieren, Auth-Rate-Limits prüfen
-- [ ] Tageslimits & OpenAI-Budget festlegen
-- [ ] Datenschutzerklärung & Impressum (Vorlage der Datenflüsse: [`docs/DATENSCHUTZ.md`](docs/DATENSCHUTZ.md)), AV-Verträge mit Supabase & OpenAI
+- [ ] Tageslimits prüfen; für viele Nutzer ggf. bezahlten KI-Tarif wählen (Gratis-Kontingent ist pro Projekt begrenzt)
+- [ ] Datenschutzerklärung & Impressum (Vorlage der Datenflüsse: [`docs/DATENSCHUTZ.md`](docs/DATENSCHUTZ.md)), Auftragsverarbeitung mit Supabase & Google
 - [ ] Optional: Kontoverknüpfung (E-Mail/Apple/Google) anbieten, damit Profile geräteübergreifend erhalten bleiben
 - [ ] `npm run test:rls` gegen das Produktionsprojekt (Staging) laufen lassen
 
@@ -235,6 +234,6 @@ deutlich gekennzeichneten Beispielweinen** (`src/demo/fixtures.ts`). Es wird **n
 | Onboarding-UI (10 Fragen → Speicherung) | ✅ Testing-Library-Test |
 | Migrationen + RLS + Storage-Policies | ✅ 18 Integrationstests gegen Postgres 16 mit Supabase-Nachbildung |
 | Gesamter UI-Ablauf (Onboarding, Scan, Ergebnis, Speichern, Bewerten, Profil) | ✅ Browser-Durchlauf im Demo-Modus |
-| Edge Functions | ✅ Deno-Typcheck · ⚠️ **nicht live ausgeführt** (kein Supabase-Projekt/OpenAI-Key in der Entwicklungsumgebung) |
-| Echte KI-Erkennung von Etiketten/Weinkarten | ⚠️ **nicht getestet** – benötigt deinen OpenAI-Key |
+| Edge Functions | ✅ Deno-Typcheck · ⚠️ **nicht live ausgeführt** (Cloud-Umgebung erreicht Supabase nicht direkt; Functions sind deployt) |
+| Echte KI-Erkennung von Etiketten/Weinkarten | ⚠️ **nicht getestet** – benötigt deinen kostenlosen Gemini-Key |
 | RLS gegen echtes Supabase (`rls.supabase.test.ts`) | ⚠️ vorbereitet, läuft sobald du URL + Key angibst |

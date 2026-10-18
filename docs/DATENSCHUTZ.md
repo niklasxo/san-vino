@@ -6,8 +6,8 @@
 |---|---|---|---|
 | Anonyme Nutzer-ID + Sitzungstoken | Supabase Auth; Token im `localStorage` des Browsers (`vino-session`) | nur der Nutzer | – |
 | 10 Antworten, Geschmacksprofil | Supabase Postgres (`taste_answers`, `taste_profiles`) | nur der Nutzer (RLS) | – |
-| Fotos von Etiketten/Weinkarten | Supabase Storage, privater Bucket, ohne EXIF/GPS | nur der Nutzer (RLS), Edge Function | **OpenAI** (zur Analyse; `store: false`) |
-| Erkannte Weine, Scores, Erklärungen | Supabase (`scans`, `scan_items`) | nur der Nutzer | Geschmacksprofil (zusammengefasst) + Weindaten an **OpenAI** für Erklärungen |
+| Fotos von Etiketten/Weinkarten | Supabase Storage, privater Bucket, ohne EXIF/GPS | nur der Nutzer (RLS), Edge Function | **Google Gemini API** (zur Analyse) |
+| Erkannte Weine, Scores, Erklärungen | Supabase (`scans`, `scan_items`) | nur der Nutzer | Geschmacksprofil (zusammengefasst) + Weindaten an **Google Gemini** für Erklärungen |
 | Gespeicherte Weine, Bewertungen, Notizen | Supabase (`user_wines`, `wine_ratings`) | nur der Nutzer | – |
 | Sicher identifizierte Weine (ohne Personenbezug) | Supabase `wines` (gemeinsamer Katalog) | alle angemeldeten Nutzer lesend | – |
 | KI-Nutzungszähler | Supabase `ai_usage` | Nutzer lesend, nur Server schreibt | – |
@@ -18,5 +18,5 @@
   (*Mein Geschmack → Alle meine Daten löschen*) gelöscht werden.
 - Es werden keine Bildinhalte oder API-Schlüssel geloggt.
 - Schriften werden lokal ausgeliefert (kein Google-Fonts-Aufruf).
-- Vor Veröffentlichung: Auftragsverarbeitungsverträge mit Supabase und OpenAI, Serverregion EU wählen,
+- Vor Veröffentlichung: Auftragsverarbeitung mit Supabase und Google prüfen; **kostenloser Gemini-Tarif:** Google darf Ein- und Ausgaben laut API-Bedingungen zur Verbesserung nutzen (ggf. von Menschen geprüft) – für die öffentliche Version ggf. auf den bezahlten Tarif wechseln,, Serverregion EU wählen,
   Datenschutzerklärung & Impressum ergänzen, Speicherdauer für Fotos festlegen (z. B. automatische Löschung nach X Tagen).

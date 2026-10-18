@@ -12,7 +12,7 @@ import { userTasteProfileSchema } from "../_shared/profile-schema.ts";
 import { buildExplanationInput, EXPLANATION_SYSTEM_PROMPT } from "../_shared/prompts.ts";
 import { extractedWineSchema, wineExplanationJsonSchema, wineExplanationSchema } from "../_shared/wine-schema.ts";
 import { envInt, HttpError, json, readJson, serve } from "../_server/http.ts";
-import { callStructured } from "../_server/openai.ts";
+import { aiModel, callStructured } from "../_server/ai.ts";
 import { assertWithinDailyLimit, recordUsage } from "../_server/rate-limit.ts";
 import { requireUser, serviceClient } from "../_server/supabase.ts";
 
@@ -61,7 +61,7 @@ serve(async (req) => {
 
   await assertWithinDailyLimit(db, user.id, "generate-wine-explanation", envInt("VINO_DAILY_EXPLANATION_LIMIT", 80));
 
-  const model = Deno.env.get("OPENAI_EXPLANATION_MODEL") || Deno.env.get("OPENAI_MODEL") || "gpt-5-mini";
+  const model = aiModel("text");
   const input = buildExplanationInput({
     wine: wine.data,
     profile: profile.data,

@@ -24,7 +24,7 @@ import {
   reestimateSchema,
 } from "../_shared/wine-schema.ts";
 import { envInt, HttpError, json, readJson, serve } from "../_server/http.ts";
-import { callStructured, sniffImageMime, toDataUrl } from "../_server/openai.ts";
+import { aiModel, callStructured, sniffImageMime, toDataUrl } from "../_server/ai.ts";
 import { assertWithinDailyLimit, recordUsage } from "../_server/rate-limit.ts";
 import { requireUser, serviceClient } from "../_server/supabase.ts";
 
@@ -78,7 +78,7 @@ serve(async (req) => {
     .eq("id", scan.id)
     .eq("user_id", user.id);
 
-  const model = Deno.env.get("OPENAI_MODEL") ?? "gpt-5-mini";
+  const model = aiModel("vision");
   try {
     // Bilder sicher lesen (Service-Client, Pfad bereits auf Eigentümer geprüft)
     const images: string[] = [];
@@ -257,7 +257,7 @@ async function reestimate(db: any, userId: string, itemId: string) {
   if (!wine.success) throw new HttpError(422, "bad_request");
 
   await assertWithinDailyLimit(db, userId, "analyze-wine-image", envInt("VINO_DAILY_SCAN_LIMIT", 25));
-  const model = Deno.env.get("OPENAI_EXPLANATION_MODEL") || Deno.env.get("OPENAI_MODEL") || "gpt-5-mini";
+  const model = aiModel("text");
   const facts = {
     name: wine.data.name,
     producer: wine.data.producer,

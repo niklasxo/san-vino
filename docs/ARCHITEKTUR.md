@@ -5,7 +5,7 @@ Browser (React SPA)                         Supabase Cloud
 ┌──────────────────────────┐   anon JWT    ┌──────────────────────────────┐
 │ pages/ components/       │──────────────▶│ Postgres + RLS (auth.uid())  │
 │   ↓ hooks/queries.ts     │               │ Storage: wine-scans (privat) │
-│   ↓ services/ (Interface)│──────────────▶│ Edge Functions ──▶ OpenAI    │
+│   ↓ services/ (Interface)│──────────────▶│ Edge Functions ──▶ Gemini    │
 │ lib/ (reine Logik)       │               │   (Secrets: OPENAI_API_KEY)  │
 └──────────────────────────┘               └──────────────────────────────┘
 ```
@@ -20,7 +20,7 @@ Browser (React SPA)                         Supabase Cloud
 | Repository / KI-Service | `src/services/repository.ts`, `ai-service.ts` | Interfaces; Implementierungen `supabase-*` und `demo` |
 | Reine Logik | `src/lib/taste-profile`, `src/lib/matching`, `src/lib/image`, `src/lib/validation` | ohne Seiteneffekte, voll getestet |
 | Geteilt Frontend ⇄ Server | `supabase/functions/_shared` | Typen, Matching, Zod-Schemas, Prompts – **keine** Laufzeit-APIs |
-| Nur Server | `supabase/functions/_server` | Deno: Auth, OpenAI-Client, Rate-Limits, CORS |
+| Nur Server | `supabase/functions/_server` | Deno: Auth, KI-Clients (Gemini/OpenAI, `_server/ai.ts`), Rate-Limits, CORS |
 
 Der Matching-Algorithmus existiert genau einmal (`_shared/matching.ts`) und läuft identisch im Browser
 (Live-Score zum aktuellen Profil) und in den Edge Functions (gespeicherter Score, Input für Erklärungen).
@@ -29,7 +29,7 @@ Der Matching-Algorithmus existiert genau einmal (`_shared/matching.ts`) und läu
 
 1. Browser bereitet Foto vor (`lib/image/prepare.ts`): Typ/Größe prüfen, Ausrichtung anwenden, ≤ 2048 px, JPEG-Neukodierung → **EXIF/GPS entfernt**.
 2. `scans`-Zeile anlegen → Upload nach `wine-scans/<uid>/<scan_id>/<n>.jpg` (RLS: nur eigener Ordner).
-3. `analyze-wine-image` verifiziert JWT, prüft Eigentum & Pfade, Tageslimit, Magic Bytes, ruft OpenAI mit Strict-JSON-Schema, validiert mit Zod, berechnet Matches, speichert `scan_items`.
+3. `analyze-wine-image` verifiziert JWT, prüft Eigentum & Pfade, Tageslimit, Magic Bytes, ruft die KI (Standard: Gemini) mit JSON-Schema, validiert mit Zod, berechnet Matches, speichert `scan_items`.
 4. Sicher identifizierte Weine (≥ 0,85, Name + Produzent lesbar) werden im gemeinsamen Katalog `wines` verknüpft – nur per service_role, nie überschrieben. Unsichere bleiben nutzerbezogen in `scan_items.extracted_data`.
 5. Detailansicht ruft `generate-wine-explanation` (gecacht pro Profilversion & Score).
 
