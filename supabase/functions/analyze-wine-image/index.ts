@@ -31,7 +31,8 @@ import { requireUser, serviceClient } from "../_server/supabase.ts";
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 const MAX_IMAGES = 6;
 const CATALOG_MIN_CONFIDENCE = 0.85;
-const STALE_ANALYSIS_MS = 3 * 60 * 1000;
+// Supabase beendet Functions nach ~150 s – danach gilt eine hängende Analyse als abgebrochen.
+const STALE_ANALYSIS_MS = 160 * 1000;
 
 const bodySchema = z.union([
   z.object({ scan_id: z.uuid() }),
@@ -105,8 +106,9 @@ serve(async (req) => {
         schemaName: "wine_image_analysis",
         schema: imageAnalysisJsonSchema as unknown as Record<string, unknown>,
         maxOutputTokens: isMenu ? 32_000 : 8_000,
-        deadlineMs: 135_000,
-        attemptTimeoutMs: isMenu ? 120_000 : 70_000,
+        // Muss sicher unter dem Laufzeitlimit der Function (~150 s) bleiben.
+        deadlineMs: 115_000,
+        attemptTimeoutMs: isMenu ? 100_000 : 60_000,
       });
     } catch (err) {
       await recordUsage(db, { userId: user.id, fn: "analyze-wine-image", model, success: false });

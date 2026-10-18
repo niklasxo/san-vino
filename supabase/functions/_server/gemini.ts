@@ -27,9 +27,10 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
     withSchema
       ? req.system
       : `${req.system}\n\nOUTPUT FORMAT: Return ONLY a JSON object that matches this JSON Schema exactly (all keys required):\n${JSON.stringify(req.schema)}`;
-  const config = (withSchema: boolean) => ({
+  const config = (withSchema: boolean, withThinking: boolean) => ({
     responseMimeType: "application/json",
     ...(withSchema ? { responseJsonSchema: req.schema } : {}),
+    ...(withThinking ? { thinkingConfig: thinkingFor(req.model) } : {}),
     maxOutputTokens: req.maxOutputTokens,
     temperature: 0.2,
   });
@@ -37,9 +38,11 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
   const started = Date.now();
   let attempt = 0;
   let withSchema = true;
+  // Ausführliches „Nachdenken“ macht das Ablesen von Etiketten/Karten nur langsam → knapp halten.
+  let withThinking = Deno.env.get("GEMINI_THINKING") !== "default";
   let lastError: unknown;
 
-  while (attempt < 3) {
+  while (attempt < 4) {
     attempt++;
     const remaining = req.deadlineMs - (Date.now() - started);
     if (remaining < 5_000) break;
@@ -49,34 +52,47 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
       const res = await fetch(`${API}/${encodeURIComponent(req.model)}:generateContent`, {
         method: "POST",
         headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ systemInstruction: { parts: [{ text: system(withSchema) }] }, contents, generationConfig: config(withSchema) }),
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system(withSchema) }] },
+          contents,
+          generationConfig: config(withSchema, withThinking),
+        }),
         signal: controller.signal,
       });
       if (!res.ok) {
         const detail = await res.text().catch(() => "");
         lastError = new Error(`Gemini HTTP ${res.status}: ${detail.slice(0, 300)}`);
-        // Manche Modelle akzeptieren das JSON-Schema nicht → einmal ohne Schema versuchen
+        console.error(`[vino] gemini HTTP ${res.status} attempt=${attempt}:`, detail.slice(0, 200));
+        // 400: zuerst ohne Denk-Einstellung, dann ohne Schema erneut versuchen
         // (die Antwort wird anschließend trotzdem mit Zod streng geprüft).
+        if (res.status === 400 && withThinking) {
+          withThinking = false;
+          continue;
+        }
         if (res.status === 400 && withSchema) {
           withSchema = false;
           continue;
         }
         if (res.status === 429) {
           // Kostenloses Kontingent erschöpft oder zu viele Anfragen pro Minute.
-          if (attempt < 3) {
+          if (attempt < 3 && req.deadlineMs - (Date.now() - started) > 20_000) {
             await sleep(attempt * 4_000);
             continue;
           }
           throw new HttpError(429, "rate_limited", "Gemini-Kontingent erschöpft");
         }
-        if (RETRYABLE.has(res.status) && attempt < 3) {
+        if (RETRYABLE.has(res.status) && attempt < 4) {
           await sleep(attempt * 1_500);
           continue;
         }
-        console.error("[vino] gemini error", res.status, detail.slice(0, 300));
         throw new HttpError(502, "ai_unavailable");
       }
       const payload = await res.json();
+      console.log(
+        `[vino] gemini ok model=${payload.modelVersion ?? req.model} ms=${Date.now() - started} attempt=${attempt}` +
+          ` in=${payload.usageMetadata?.promptTokenCount} out=${payload.usageMetadata?.candidatesTokenCount}` +
+          ` thoughts=${payload.usageMetadata?.thoughtsTokenCount ?? 0}`,
+      );
       return {
         data: extractJson(payload),
         usage: { input_tokens: payload.usageMetadata?.promptTokenCount, output_tokens: payload.usageMetadata?.candidatesTokenCount },
@@ -85,7 +101,8 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
     } catch (err) {
       if (err instanceof HttpError) throw err;
       lastError = err;
-      if (attempt < 3) await sleep(attempt * 1_500);
+      console.error(`[vino] gemini attempt ${attempt} failed after ${Date.now() - started} ms:`, err instanceof Error ? err.name : String(err));
+      if (attempt < 4) await sleep(1_000);
     } finally {
       clearTimeout(timer);
     }
@@ -116,4 +133,13 @@ function extractJson(payload: any): unknown {
   } catch {
     throw new HttpError(502, "ai_invalid_response", "not json");
   }
+}
+
+/**
+ * Gemini 2.x steuert das Nachdenken über ein Token-Budget, neuere Modelle über eine Stufe.
+ * Standard: so wenig wie möglich – für Texterkennung reicht das, und es ist deutlich schneller.
+ */
+export function thinkingFor(model: string): Record<string, unknown> {
+  if (/gemini-(1\.|2\.)/.test(model)) return { thinkingBudget: /pro/.test(model) ? 128 : 0 };
+  return { thinkingLevel: Deno.env.get("GEMINI_THINKING_LEVEL") || "low" };
 }

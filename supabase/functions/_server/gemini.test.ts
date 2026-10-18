@@ -42,6 +42,7 @@ Deno.test("liest JSON-Antwort, übergibt Bild als inline_data und Key im Header"
   assert(!seen[0].url.includes("test-key") && seen[0].headers["x-goog-api-key"] === "test-key", "key nur im Header");
   assert(seen[0].body.contents[0].parts[1].inline_data.mime_type === "image/jpeg", "inline image");
   assert(seen[0].body.generationConfig.responseJsonSchema, "schema mitgeschickt");
+  assert(seen[0].body.generationConfig.thinkingConfig?.thinkingLevel === "low", "wenig Nachdenken");
 });
 
 Deno.test("ignoriert Denk-Teile und ```json-Blöcke", async () => {
@@ -50,15 +51,18 @@ Deno.test("ignoriert Denk-Teile und ```json-Blöcke", async () => {
   assert((res.data as any).a === 1, "parsed");
 });
 
-Deno.test("fällt bei abgelehntem Schema auf reines JSON zurück", async () => {
+Deno.test("fällt bei 400 erst ohne Denk-Einstellung, dann ohne Schema zurück", async () => {
   const seen: any[] = [];
   mockFetch([
+    { status: 400, body: { error: { message: "Unknown name thinkingLevel" } } },
     { status: 400, body: { error: { message: "Invalid value at generation_config" } } },
     { status: 200, body: { candidates: [{ finishReason: "STOP", content: { parts: [{ text: "{}" }] } }] } },
   ], seen);
   await callGemini(req);
-  assert(seen.length === 2 && !seen[1].body.generationConfig.responseJsonSchema, "zweiter Versuch ohne Schema");
-  assert(seen[1].body.systemInstruction.parts[0].text.includes("OUTPUT FORMAT"), "Format im Prompt");
+  assert(seen.length === 3, "drei Versuche");
+  assert(!seen[1].body.generationConfig.thinkingConfig && seen[1].body.generationConfig.responseJsonSchema, "2. Versuch ohne Denken");
+  assert(!seen[2].body.generationConfig.responseJsonSchema, "3. Versuch ohne Schema");
+  assert(seen[2].body.systemInstruction.parts[0].text.includes("OUTPUT FORMAT"), "Format im Prompt");
 });
 
 Deno.test("Sicherheitsblock → ai_refused, Kontingent → rate_limited", async () => {
@@ -66,4 +70,10 @@ Deno.test("Sicherheitsblock → ai_refused, Kontingent → rate_limited", async 
   try { await callGemini(req); throw new Error("no throw"); } catch (e) { assert(e instanceof HttpError && e.code === "ai_refused", "refused"); }
   mockFetch([{ status: 429, body: {} }], []);
   try { await callGemini({ ...req, deadlineMs: 60_000 }); throw new Error("no throw"); } catch (e) { assert(e instanceof HttpError && e.code === "rate_limited", "rate"); }
+});
+
+Deno.test("Gemini 2.x nutzt Token-Budget statt Stufe", async () => {
+  const { thinkingFor } = await import("./gemini.ts");
+  assert((thinkingFor("gemini-2.5-flash") as any).thinkingBudget === 0, "budget 0");
+  assert((thinkingFor("gemini-flash-latest") as any).thinkingLevel === "low", "level low");
 });
