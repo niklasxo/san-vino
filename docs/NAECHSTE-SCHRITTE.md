@@ -32,6 +32,18 @@
   weil die Cloud-Umgebung supabase.co nicht direkt erreicht.
 - Änderungen an `supabase/functions/_shared` → alle Functions neu deployen.
 
+## Stand 18.10. spät – alles live & getestet
+- App: https://san-vino.vercel.app (Vercel-Projekt `san-vino`, Auto-Deploy bei Push auf `main`)
+- Gemini-Key gesetzt, Modell löst auf `gemini-3.8-flash` auf. Gemessen: Flasche ~10 s, Weinkarte (6 Weine) ~17–19 s
+- Deployt: `analyze-wine-image` v5, `generate-wine-explanation` v4 (beide mit wenig Nachdenken), `delete-my-data` v1
+- Vercel-MCP: Projekt sichtbar, Details/Deployments → 403 (Scope `niklasxo`). Build-Status über GitHub-Commit-Status prüfen.
+
+## Nächste Tempo-Ideen (nicht umgesetzt)
+1. KI-Antwort verschlanken: `other_details` streichen, `evidence` kompakter → weniger Ausgabe-Tokens (Ausgabe dominiert die Dauer).
+2. Bildanalyse streamen (`streamGenerateContent`) und Weine nacheinander anzeigen.
+3. Erklärung schon im Hintergrund vorladen, sobald das Ergebnis da ist.
+4. Für reine Flaschen-Scans ggf. `gemini-flash-lite-latest` testen (Secret `GEMINI_MODEL`).
+
 ## Kosten: alles 0 €
 - Gemini API: kostenloser Tarif (Limits pro Minute/Tag; Google darf Gratis-Anfragen zur Verbesserung nutzen)
 - Supabase Free: kostenlos, pausiert das Projekt nach ca. 1 Woche ohne Nutzung (im Dashboard wieder starten)
