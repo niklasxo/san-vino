@@ -221,6 +221,9 @@ Details zu den RLS-Tests: [`tests/integration/README.md`](tests/integration/READ
 
 ## Demo-Modus
 
+**Online-Demo:** `npm run build:demo` erzeugt `demo-dist/san-vino-demo.html` – eine einzige Datei mit der kompletten App im Demo-Modus (Hash-Routing, ohne Server), z. B. zum Teilen als Link.
+
+
 `VITE_DEMO_MODE=true npm run dev` (oder Button auf der Einrichtungsseite). Zeigt alle Ansichten mit **frei erfundenen,
 deutlich gekennzeichneten Beispielweinen** (`src/demo/fixtures.ts`). Es wird **nichts in Supabase gespeichert** und
 **keine KI aufgerufen**; Erklärungen sind regelbasiert und als „Demo-Erklärung“ markiert. Der Zustand liegt nur im

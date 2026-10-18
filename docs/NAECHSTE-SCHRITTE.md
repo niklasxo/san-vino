@@ -3,11 +3,14 @@
 ## Erledigt
 - [x] Code auf GitHub: `niklasxo/san-vino` (Branch `main`)
 - [x] Supabase-Projekt **san-vino** (`vbleskoyqyukokkutdnx`, Frankfurt) angelegt – Projekt „uss“ NICHT anfassen (gehört zu us-app)
-- [x] Migrationen 001–004 eingespielt, Security Advisor ohne Befund, RLS per SQL mit zwei Testnutzern geprüft
+- [x] Migrationen 001–005 eingespielt (005 = Fremdschlüssel-Indizes), Security Advisor ohne Befund, RLS per SQL mit zwei Testnutzern geprüft
 - [x] Edge Functions deployt: `analyze-wine-image`, `generate-wine-explanation`, `delete-my-data` (verify_jwt = false, Auth im Code)
 - [x] Anonyme Anmeldung von Niklas eingeschaltet (Auth-Log 21:16 „reloading api with new configuration“) – **beim ersten App-Start bestätigen**
 - [x] `.claude/settings.json` mit dauerhaften Freigaben
-- [x] KI auf Google Gemini (kostenlos) umgestellt, beide KI-Functions als Version 2 deployt (Modell `gemini-flash-latest`)
+- [x] KI auf Google Gemini (kostenlos) umgestellt (Modell `gemini-flash-latest`). Deployt: `analyze-wine-image` v3 (aktueller Stand),
+  `generate-wine-explanation` v2 (älterer Gemini-Fallback – beim nächsten Deploy mitziehen), `delete-my-data` v1
+- [x] Klickbare Demo (Demo-Modus, Einzeldatei): https://claude.ai/artifact/F9Lrfn3s3dxithbj4iieSX – neu bauen mit `npm run build:demo`
+- [x] GitHub Actions CI: Typecheck, Tests, Build, Deno-Check, RLS-Tests bei jedem Push
 
 ## Offen – morgen am Computer
 0. **KI-Anbieter entschieden:** Google Gemini (kostenloser Tarif, kein Geld). OpenAI bleibt optional (`AI_PROVIDER`).
