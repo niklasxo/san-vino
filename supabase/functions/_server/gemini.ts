@@ -21,10 +21,12 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
   const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) throw new HttpError(503, "not_configured", "GEMINI_API_KEY fehlt");
 
-  const baseBody = {
-    systemInstruction: { parts: [{ text: req.system }] },
-    contents: [{ role: "user", parts: toParts(req.userContent) }],
-  };
+  const contents = [{ role: "user", parts: toParts(req.userContent) }];
+  // Ohne Schema-Unterstützung wird das Zielformat im Prompt beschrieben.
+  const system = (withSchema: boolean) =>
+    withSchema
+      ? req.system
+      : `${req.system}\n\nOUTPUT FORMAT: Return ONLY a JSON object that matches this JSON Schema exactly (all keys required):\n${JSON.stringify(req.schema)}`;
   const config = (withSchema: boolean) => ({
     responseMimeType: "application/json",
     ...(withSchema ? { responseJsonSchema: req.schema } : {}),
@@ -47,7 +49,7 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
       const res = await fetch(`${API}/${encodeURIComponent(req.model)}:generateContent`, {
         method: "POST",
         headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ ...baseBody, generationConfig: config(withSchema) }),
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: system(withSchema) }] }, contents, generationConfig: config(withSchema) }),
         signal: controller.signal,
       });
       if (!res.ok) {
@@ -55,7 +57,7 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
         lastError = new Error(`Gemini HTTP ${res.status}: ${detail.slice(0, 300)}`);
         // Manche Modelle akzeptieren das JSON-Schema nicht → einmal ohne Schema versuchen
         // (die Antwort wird anschließend trotzdem mit Zod streng geprüft).
-        if (res.status === 400 && withSchema && /schema/i.test(detail)) {
+        if (res.status === 400 && withSchema) {
           withSchema = false;
           continue;
         }

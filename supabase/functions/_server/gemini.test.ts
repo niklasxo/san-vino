@@ -53,11 +53,12 @@ Deno.test("ignoriert Denk-Teile und ```json-Blöcke", async () => {
 Deno.test("fällt bei abgelehntem Schema auf reines JSON zurück", async () => {
   const seen: any[] = [];
   mockFetch([
-    { status: 400, body: { error: { message: "Invalid JSON payload: responseJsonSchema not supported" } } },
+    { status: 400, body: { error: { message: "Invalid value at generation_config" } } },
     { status: 200, body: { candidates: [{ finishReason: "STOP", content: { parts: [{ text: "{}" }] } }] } },
   ], seen);
   await callGemini(req);
   assert(seen.length === 2 && !seen[1].body.generationConfig.responseJsonSchema, "zweiter Versuch ohne Schema");
+  assert(seen[1].body.systemInstruction.parts[0].text.includes("OUTPUT FORMAT"), "Format im Prompt");
 });
 
 Deno.test("Sicherheitsblock → ai_refused, Kontingent → rate_limited", async () => {
