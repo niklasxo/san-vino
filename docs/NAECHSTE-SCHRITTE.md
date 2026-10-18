@@ -7,6 +7,7 @@
 - [x] Edge Functions deployt: `analyze-wine-image`, `generate-wine-explanation`, `delete-my-data` (verify_jwt = false, Auth im Code)
 - [x] Anonyme Anmeldung von Niklas eingeschaltet (Auth-Log 21:16 „reloading api with new configuration“) – **beim ersten App-Start bestätigen**
 - [x] `.claude/settings.json` mit dauerhaften Freigaben
+- [x] KI auf Google Gemini (kostenlos) umgestellt, beide KI-Functions als Version 2 deployt (Modell `gemini-flash-latest`)
 
 ## Offen – morgen am Computer
 0. **KI-Anbieter entschieden:** Google Gemini (kostenloser Tarif, kein Geld). OpenAI bleibt optional (`AI_PROVIDER`).
@@ -27,3 +28,8 @@
 - Edge Functions werden über das Supabase-MCP-Tool deployt (Dateien inkl. `../_shared` und `../_server` mitschicken),
   weil die Cloud-Umgebung supabase.co nicht direkt erreicht.
 - Änderungen an `supabase/functions/_shared` → alle Functions neu deployen.
+
+## Kosten: alles 0 €
+- Gemini API: kostenloser Tarif (Limits pro Minute/Tag; Google darf Gratis-Anfragen zur Verbesserung nutzen)
+- Supabase Free: kostenlos, pausiert das Projekt nach ca. 1 Woche ohne Nutzung (im Dashboard wieder starten)
+- Vercel Hobby: kostenlos für private, nicht-kommerzielle Nutzung

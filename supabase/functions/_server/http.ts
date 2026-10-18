@@ -1,6 +1,6 @@
 // Gemeinsame HTTP-Helfer für alle Edge Functions (nur Deno).
 
-const allowed = (Deno.env.get("VINO_ALLOWED_ORIGINS") ?? "*")
+const allowed = (Deno.env.get("VINO_ALLOWED_ORIGINS") || "*")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
