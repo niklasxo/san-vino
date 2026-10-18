@@ -37,6 +37,7 @@ for (const [i, a] of answers.entries()) {
   } else {
     await page.getByRole("radio", { name: a }).click();
     if (i === 9) { await shot("04-q10"); await page.getByRole("button", { name: /Mein Profil erstellen/ }).click(); }
+    else await page.getByRole("button", { name: /^Weiter/ }).click();
   }
   await page.waitForTimeout(450);
 }

@@ -34,8 +34,6 @@ function OnboardingFlow({ initial, hasProfile }: { initial: Partial<TasteAnswers
   const [step, setStep] = React.useState(0);
   const [direction, setDirection] = React.useState(1);
   const complete = useCompleteOnboarding();
-  const advanceTimer = React.useRef<number | undefined>(undefined);
-  React.useEffect(() => () => window.clearTimeout(advanceTimer.current), []);
 
   const question = QUESTIONS[step];
   const value = form.watch(question.key);
@@ -126,15 +124,8 @@ function OnboardingFlow({ initial, hasProfile }: { initial: Partial<TasteAnswers
                             const list = Array.isArray(current) ? current : [];
                             field.onChange(selected ? list.filter((x) => x !== option.id) : [...list, option.id]);
                           } else {
+                            // Weiter geht es immer erst über den Button – nie automatisch.
                             field.onChange(option.id);
-                            // Einzelauswahl: sanft automatisch weiter
-                            window.clearTimeout(advanceTimer.current);
-                            if (!isLast) {
-                              advanceTimer.current = window.setTimeout(() => {
-                                setDirection(1);
-                                setStep((s) => Math.min(QUESTIONS.length - 1, s + 1));
-                              }, 320);
-                            }
                           }
                         }}
                       />
@@ -147,12 +138,10 @@ function OnboardingFlow({ initial, hasProfile }: { initial: Partial<TasteAnswers
         </AnimatePresence>
 
         <div className="sticky bottom-0 mt-6 bg-gradient-to-t from-ivory via-ivory to-ivory/0 pt-6 pb-6">
-          {(question.kind === "multi" || isLast || answered) && (
-            <Button type="submit" block disabled={!answered || complete.isPending}>
-              {complete.isPending ? "Wir lernen deinen Geschmack kennen …" : isLast ? (editing ? "Änderungen speichern" : "Mein Profil erstellen") : "Weiter"}
-              {!complete.isPending && <ArrowRight />}
-            </Button>
-          )}
+          <Button type="submit" block disabled={!answered || complete.isPending}>
+            {complete.isPending ? "Wir lernen deinen Geschmack kennen …" : isLast ? (editing ? "Änderungen speichern" : "Mein Profil erstellen") : "Weiter"}
+            {!complete.isPending && <ArrowRight />}
+          </Button>
         </div>
       </form>
     </main>
