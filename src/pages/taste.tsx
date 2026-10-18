@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useDeleteAllData, useProfileState, useResetProfile, useSavedWines } from "@/hooks/queries";
+import { reloadAtStart } from "@/lib/config";
 import { describeError } from "@/lib/errors";
 import { describeProfile, PREFERABLE_TYPE_LABEL, profileCertainty } from "@/lib/taste-profile/describe";
 import { determineTasteType } from "@/lib/taste-profile/taste-type";
@@ -125,7 +126,7 @@ export default function TastePage() {
               try {
                 await deleteAll.mutateAsync();
                 qc.clear();
-                window.location.assign("/");
+                reloadAtStart();
               } catch (err) {
                 toast.error(describeError(err).title, { description: describeError(err).text });
               }

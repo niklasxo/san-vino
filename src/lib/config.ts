@@ -18,6 +18,19 @@ export const config = {
   demoMode: readDemoFlag(),
 };
 
+/** Einzeldatei-Demo: Hash-Routing, kein Server nötig. */
+export const usesHashRouter = env.VITE_ROUTER === "hash";
+
+/** Lädt die App an ihrer Startseite neu (funktioniert mit Browser- und Hash-Routing). */
+export function reloadAtStart() {
+  if (usesHashRouter) {
+    window.location.hash = "#/";
+    window.location.reload();
+  } else {
+    window.location.assign("/");
+  }
+}
+
 export const isSupabaseConfigured =
   /^https?:\/\//.test(config.supabaseUrl) && config.supabaseAnonKey.length > 20 && !config.supabaseUrl.includes("DEIN-PROJEKT");
 
@@ -28,7 +41,7 @@ export function enableDemoMode() {
   } catch {
     /* ignore */
   }
-  window.location.assign("/");
+  reloadAtStart();
 }
 
 export function disableDemoMode() {
@@ -37,5 +50,5 @@ export function disableDemoMode() {
   } catch {
     /* ignore */
   }
-  window.location.assign("/");
+  reloadAtStart();
 }

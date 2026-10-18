@@ -1,5 +1,6 @@
 import type * as React from "react";
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, createHashRouter } from "react-router";
+import { usesHashRouter } from "@/lib/config";
 import { AppShell } from "@/components/layout/app-shell";
 import { SplashScreen } from "@/components/layout/states";
 import { RootLayout } from "./root-layout";
@@ -7,7 +8,10 @@ import { RootLayout } from "./root-layout";
 // Seiten werden erst bei Bedarf geladen (kleineres Start-Bundle).
 const page = (load: () => Promise<{ default: React.ComponentType }>) => () => load().then((m) => ({ Component: m.default }));
 
-export const router = createBrowserRouter([
+// Hash-Routing nur für die Einzeldatei-Demo (läuft ohne Server, z. B. als geteilter Link).
+const createRouter = usesHashRouter ? createHashRouter : createBrowserRouter;
+
+export const router = createRouter([
   {
     element: <RootLayout />,
     hydrateFallbackElement: <SplashScreen />,

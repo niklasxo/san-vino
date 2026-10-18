@@ -16,7 +16,8 @@
     "check:functions": "for f in supabase/functions/*/index.ts; do (cd $(dirname $f) && deno check index.ts) || exit 1; done",
     "test:rls:local": "./scripts/test-rls-local.sh",
     "e2e:demo": "node scripts/demo-walkthrough.mjs",
-    "test:functions": "cd supabase/functions/analyze-wine-image && deno test --allow-env ../_server/gemini.test.ts"
+    "test:functions": "cd supabase/functions/analyze-wine-image && deno test --allow-env ../_server/gemini.test.ts",
+    "build:demo": "vite build --config vite.demo.config.ts && node scripts/inline-demo.mjs"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",
