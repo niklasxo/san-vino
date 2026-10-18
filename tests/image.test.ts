@@ -3,7 +3,7 @@ import { ImageError, targetSize, validateImageFile } from "@/lib/image/prepare";
 
 describe("Bildvorbereitung", () => {
   it("begrenzt die Kantenlänge und behält das Seitenverhältnis", () => {
-    expect(targetSize(4032, 3024)).toEqual({ width: 2048, height: 1536 });
+    expect(targetSize(4032, 3024)).toEqual({ width: 1600, height: 1200 });
     expect(targetSize(800, 600)).toEqual({ width: 800, height: 600 });
   });
   it("lehnt falsche Dateitypen und zu große Dateien ab", () => {

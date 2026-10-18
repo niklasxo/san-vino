@@ -8,7 +8,8 @@
 export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 export const MAX_INPUT_BYTES = 30 * 1024 * 1024;
 export const MAX_OUTPUT_BYTES = 4.5 * 1024 * 1024;
-const MAX_EDGE = 2048;
+// 1600 px reichen für gut lesbare Etiketten und Karten – kleiner = schnellerer Upload.
+const MAX_EDGE = 1600;
 
 export class ImageError extends Error {
   constructor(public reason: "type" | "too_large" | "decode") {
@@ -68,7 +69,7 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
   const decoded = await decode(file);
   try {
     let edge = MAX_EDGE;
-    let quality = 0.86;
+    let quality = 0.82;
     for (let attempt = 0; attempt < 4; attempt++) {
       const { width, height } = targetSize(decoded.width, decoded.height, edge);
       const canvas = document.createElement("canvas");
