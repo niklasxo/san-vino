@@ -66,7 +66,7 @@ export function RatingSheet({
       });
       onOpenChange(false);
       toast.success("Danke! Dein Geschmacksprofil wurde aktualisiert.", {
-        description: res ? "VINO hat aus deiner Bewertung gelernt." : undefined,
+        description: res ? "SAN VINO hat aus deiner Bewertung gelernt." : undefined,
       });
     } catch (err) {
       const d = describeError(err);

@@ -1,5 +1,5 @@
 /**
- * VINO Matching-Algorithmus
+ * SAN VINO Matching-Algorithmus
  * ─────────────────────────
  * Beantwortet ausschließlich: „Wie gut passt dieser Wein zu DIESEM Geschmacksprofil?“
  * Preis, Bekanntheit oder Expertenbewertungen spielen keine Rolle.

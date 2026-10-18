@@ -4,7 +4,7 @@ import SetupPage from "@/pages/setup";
 import { useSession } from "./session";
 
 const SESSION_ERRORS = {
-  offline: { title: "Keine Internetverbindung", text: "VINO braucht für den Start kurz Internet. Prüf deine Verbindung." },
+  offline: { title: "Keine Internetverbindung", text: "SAN VINO braucht für den Start kurz Internet. Prüf deine Verbindung." },
   anonymous_disabled: {
     title: "Anonyme Anmeldung ist deaktiviert",
     text: "Aktiviere in Supabase unter Authentication → Sign In / Providers die Option „Allow anonymous sign-ins“.",

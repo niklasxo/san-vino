@@ -10,7 +10,7 @@ export default function SetupPage() {
       <div className="pt-10">
         <Logo />
       </div>
-      <h1 className="mt-10 font-serif text-[32px] leading-tight text-charcoal">Fast geschafft – VINO braucht noch seine Datenbank.</h1>
+      <h1 className="mt-10 font-serif text-[32px] leading-tight text-charcoal">Fast geschafft – SAN VINO braucht noch ihre Datenbank.</h1>
       <p className="mt-4 text-[16px] leading-relaxed text-taupe">
         Es sind noch keine Supabase-Zugangsdaten hinterlegt. So richtest du sie ein:
       </p>

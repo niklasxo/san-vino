@@ -119,7 +119,7 @@ export default function SavedWinePage() {
             {rating.notes && <p className="text-[14px] text-taupe italic">„{rating.notes}“</p>}
           </div>
         ) : (
-          <p className="mt-2 text-[14px] leading-relaxed text-taupe">Sag uns, wie er dir geschmeckt hat – so lernt VINO deinen Geschmack immer besser kennen.</p>
+          <p className="mt-2 text-[14px] leading-relaxed text-taupe">Sag uns, wie er dir geschmeckt hat – so lernt SAN VINO deinen Geschmack immer besser kennen.</p>
         )}
       </section>
 

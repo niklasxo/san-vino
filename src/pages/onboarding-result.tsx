@@ -46,7 +46,7 @@ export default function OnboardingResultPage() {
       </motion.section>
 
       <p className="mt-4 px-2 text-center text-[13px] leading-relaxed text-taupe">
-        Das ist ein erster Eindruck. Mit jedem Wein, den du bewertest, wird VINO genauer.
+        Das ist ein erster Eindruck. Mit jedem Wein, den du bewertest, wird SAN VINO genauer.
       </p>
 
       <div className="mt-auto pt-8 pb-6">

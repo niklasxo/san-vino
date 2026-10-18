@@ -1,9 +1,9 @@
 {
-  "name": "vino",
+  "name": "san-vino",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "VINO – dein persönlicher KI-Wein-Sommelier",
+  "description": "SAN VINO – dein persönlicher KI-Wein-Sommelier",
   "scripts": {
     "dev": "vite",
     "dev:host": "vite --host",

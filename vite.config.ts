@@ -11,10 +11,10 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
-      includeAssets: ["favicon.svg", "icons/apple-touch-icon.png"],
+      includeAssets: ["favicon.svg", "icons/apple-touch-icon.png", "icons/app-icon.svg"],
       manifest: {
-        name: "VINO – Dein Wein-Sommelier",
-        short_name: "VINO",
+        name: "SAN VINO – Dein Wein-Sommelier",
+        short_name: "San Vino",
         description: "Finde Wein, der wirklich zu dir passt.",
         lang: "de",
         start_url: "/",

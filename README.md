@@ -1,6 +1,6 @@
-# 🍷 VINO – dein persönlicher KI-Wein-Sommelier
+# 🍷 SAN VINO – dein persönlicher KI-Wein-Sommelier
 
-VINO findet heraus, was **dir** schmeckt – mit zehn einfachen Fragen ohne Fachwissen – und sagt dir dann
+SAN VINO findet heraus, was **dir** schmeckt – mit zehn einfachen Fragen ohne Fachwissen – und sagt dir dann
 für jede fotografierte Flasche oder Weinkarte, wie gut ein Wein zu deinem Geschmack passt.
 Nicht der teuerste oder bekannteste Wein gewinnt, sondern der, der am besten zu dir passt.
 

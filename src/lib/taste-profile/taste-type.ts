@@ -11,7 +11,7 @@ export interface TasteType {
   id: TasteTypeId;
   name: string;
   tagline: string;
-  /** Wonach VINO für diesen Typ besonders sucht. */
+  /** Wonach SAN VINO für diesen Typ besonders sucht. */
   focus: string;
   prototype: Partial<Record<UserPreferenceKey, number>>;
 }

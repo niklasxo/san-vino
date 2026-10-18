@@ -18,7 +18,7 @@ export default function RatingsPage() {
   return (
     <Page>
       <TopBar />
-      <PageHeading title="Deine Bewertungen" subtitle="Jede Bewertung hilft VINO, deinen Geschmack besser zu verstehen." className="pt-0" />
+      <PageHeading title="Deine Bewertungen" subtitle="Jede Bewertung hilft SAN VINO, deinen Geschmack besser zu verstehen." className="pt-0" />
       {saved.isPending ? (
         <div className="space-y-3">
           <Skeleton className="h-24 w-full" />

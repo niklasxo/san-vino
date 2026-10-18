@@ -63,7 +63,7 @@ export function ExplanationPanel({
         </p>
       )}
       <p className="text-[11px] text-taupe">
-        {explanation.demo ? "Demo-Erklärung (regelbasiert, ohne KI)" : "Persönlich formuliert von VINO · Der Match-Score wird nicht von der KI vergeben."}
+        {explanation.demo ? "Demo-Erklärung (regelbasiert, ohne KI)" : "Persönlich formuliert von SAN VINO · Der Match-Score wird nicht von der KI vergeben."}
       </p>
     </motion.div>
   );

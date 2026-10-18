@@ -1,1 +1,84 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#531F32"/><path d="M19 13h26c0 13.5-5.6 22.3-13 23.4C24.6 35.3 19 26.5 19 13Z" fill="#FAF7F2"/><path d="M20.4 20.5c3.8-1.4 7.7 1.3 11.6 0s7.8-1.4 11.6 0c-.9 8.4-5 14.2-11.6 15.4-6.6-1.2-10.7-7-11.6-15.4Z" fill="#7A3A50"/><path d="M32 36.5V49M25 51h14" stroke="#C6A878" stroke-width="2.6" stroke-linecap="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><clipPath id="r"><rect width="1024" height="1024" rx="230"/></clipPath><g clip-path="url(#r)">
+  <!-- SAN VINO App-Icon: Weinflasche im „Liquid Glass“-Stil -->
+  <defs>
+    <linearGradient id="bg" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#9a4562"/>
+      <stop offset="0.45" stop-color="#5e2238"/>
+      <stop offset="1" stop-color="#250c16"/>
+    </linearGradient>
+    <radialGradient id="glowTop" cx="0.28" cy="0.12" r="0.6">
+      <stop offset="0" stop-color="#ffd9e4" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ffd9e4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowGold" cx="0.5" cy="0.86" r="0.42">
+      <stop offset="0" stop-color="#e8c98f" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#e8c98f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.42"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.24"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="0.8" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#ffe9c7" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="wine" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#e0507a"/>
+      <stop offset="0.5" stop-color="#a3203f"/>
+      <stop offset="1" stop-color="#5a0d22"/>
+    </linearGradient>
+    <linearGradient id="label" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbefd6" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#c9a46c" stop-opacity="0.85"/>
+    </linearGradient>
+    <linearGradient id="foil" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f6e2b8"/>
+      <stop offset="0.5" stop-color="#c6a878"/>
+      <stop offset="1" stop-color="#9c7c4c"/>
+    </linearGradient>
+    <linearGradient id="streak" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="28"/></filter>
+    <filter id="blur4"><feGaussianBlur stdDeviation="4"/></filter>
+    <clipPath id="bottle">
+      <path id="bp" d="M452 176q0-26 26-26h68q26 0 26 26v152q0 52 48 92q52 44 52 122v290q0 40-40 40H392q-40 0-40-40V542q0-78 52-122q48-40 48-92Z"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glowTop)"/>
+  <rect width="1024" height="1024" fill="url(#glowGold)"/>
+
+  <!-- weicher Schatten -->
+  <ellipse cx="530" cy="905" rx="200" ry="34" fill="#12040a" opacity="0.55" filter="url(#soft)"/>
+
+  <!-- Glaskörper -->
+  <use href="#bp" fill="url(#glass)"/>
+  <g clip-path="url(#bottle)">
+    <!-- Wein mit leicht gewölbter Oberfläche -->
+    <path d="M330 560q90-26 182 0t182 0V900H330Z" fill="url(#wine)" opacity="0.92"/>
+    <path d="M330 560q90-26 182 0t182 0" fill="none" stroke="#ffb3c6" stroke-opacity="0.55" stroke-width="5"/>
+    <!-- Lichtbrechung im Glas -->
+    <rect x="600" y="430" width="40" height="420" rx="20" fill="#ffffff" opacity="0.12" filter="url(#blur4)"/>
+    <!-- Kapsel -->
+    <rect x="440" y="140" width="144" height="92" fill="url(#foil)" opacity="0.95"/>
+    <rect x="440" y="226" width="144" height="8" fill="#7e6038" opacity="0.5"/>
+  </g>
+
+  <!-- Etikett aus Champagner-Glas -->
+  <rect x="388" y="620" width="248" height="150" rx="22" fill="url(#label)"/>
+  <rect x="388" y="620" width="248" height="150" rx="22" fill="none" stroke="#ffffff" stroke-opacity="0.7" stroke-width="3"/>
+  <text x="512" y="722" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="84" letter-spacing="10" fill="#5e2238" fill-opacity="0.85">SV</text>
+  <path d="M452 742h120" stroke="#5e2238" stroke-opacity="0.35" stroke-width="3"/>
+
+  <!-- Glaskante & Glanzlichter -->
+  <use href="#bp" fill="none" stroke="url(#rim)" stroke-width="7"/>
+  <path d="M392 500q-6 40-6 90v220" stroke="url(#streak)" stroke-width="20" stroke-linecap="round" fill="none" opacity="0.75"/>
+  <path d="M474 186v128" stroke="#ffffff" stroke-opacity="0.65" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="408" cy="470" r="9" fill="#ffffff" opacity="0.8"/>
+</g></svg>
