@@ -94,6 +94,24 @@ describe("Matching", () => {
     expect(ranked[ranked.length - 1].item.extracted_data.name).toBe("Hauswein rot");
   });
 
+  it("fasst denselben Wein in verschiedenen Größen zu einem Eintrag zusammen", () => {
+    const glass = { ...DEMO_PRIMITIVO, price: 8.5, price_unit: "glass" as const };
+    const bottle = { ...DEMO_PRIMITIVO, price: 34, price_unit: "bottle" as const };
+    const carafe = { ...DEMO_PRIMITIVO, price: 19, price_unit: "carafe" as const };
+    const items = [bottle, glass, carafe, DEMO_RIESLING].map((w, i) => ({ id: `i${i}`, position: i, price: w.price, extracted_data: w }) as unknown as ScanItem);
+    const ranked = rankItems(items, fruity);
+    expect(ranked).toHaveLength(2);
+    const primitivo = ranked.find((r) => r.item.extracted_data.name === DEMO_PRIMITIVO.name)!;
+    expect(primitivo.item.extracted_data.price_unit).toBe("glass");
+    expect(primitivo.variants.map((v) => v.extracted_data.price_unit)).toEqual(["carafe", "bottle"]);
+  });
+
+  it("verschmilzt keine namenlosen Einträge", () => {
+    const nameless = demoWine({ name: null, type: "red", confidence: 0.2, props: {} });
+    const items = [nameless, nameless].map((w, i) => ({ id: `n${i}`, position: i, extracted_data: w }) as unknown as ScanItem);
+    expect(rankItems(items, fruity)).toHaveLength(2);
+  });
+
   it("formuliert Kurzbegründungen ohne Widerspruch zur Abweichung", () => {
     const m = computeMatch(fruity, BAROLO);
     expect(shortReason(m, BAROLO)).toMatch(/als du es magst|als dein/);

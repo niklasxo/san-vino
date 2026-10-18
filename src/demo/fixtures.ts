@@ -135,6 +135,8 @@ export const DEMO_BOTTLE_SEQUENCE: ExtractedWine[][] = [
 
 export const DEMO_MENU: ExtractedWine[] = [
   { ...DEMO_PRIMITIVO, producer: null, vintage: null, price: 8.5, currency: "EUR", price_unit: "glass", price_assignment: "clear", menu_section: "Rotweine · offen", identification_confidence: 0.72, evidence: { ...DEMO_PRIMITIVO.evidence, producer: "unknown", vintage: "unknown" } },
+  // Derselbe Primitivo als Flasche – wird in der Liste zu einem Eintrag zusammengefasst.
+  { ...DEMO_PRIMITIVO, producer: null, vintage: null, price: 34, currency: "EUR", price_unit: "bottle", price_assignment: "clear", menu_section: "Rotweine · Flasche", identification_confidence: 0.72, evidence: { ...DEMO_PRIMITIVO.evidence, producer: "unknown", vintage: "unknown" } },
   demoWine({
     name: "Merlot",
     region: "Venetien",

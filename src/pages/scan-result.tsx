@@ -15,6 +15,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { keys } from "@/hooks/queries";
 import { repository } from "@/services";
 import { formatPrice } from "@/lib/utils";
+import { priceLabel } from "@/components/wine/price";
+import type { ScanItem } from "@/types/domain";
+
+/** „Auch: 32,00 € pro Flasche“ – andere Größen desselben Weins. */
+function variantsNote(variants: ScanItem[]) {
+  const labels = variants.map((v) => priceLabel(v.extracted_data, v.price, v.currency)?.text).filter(Boolean);
+  return labels.length ? <span className="text-taupe">Auch: {labels.join(" · ")}</span> : null;
+}
 
 type TypeFilter = "all" | "red" | "white" | "rose" | "sparkling";
 const TYPE_LABEL: Record<TypeFilter, string> = { all: "Alle", red: "Rotwein", white: "Weißwein", rose: "Rosé", sparkling: "Schaumwein" };
@@ -106,14 +114,14 @@ export default function ScanResultPage() {
   }
 
   // ── Weinkarte ──
-  const presentTypes = (["red", "white", "rose", "sparkling"] as const).filter((t) => items.some((i) => i.extracted_data.wine_type === t));
+  const presentTypes = (["red", "white", "rose", "sparkling"] as const).filter((t) => ranked.some((r) => r.item.extracted_data.wine_type === t));
   const prices = items.map((i) => i.price).filter((p): p is number => p != null);
   const currency = items.find((i) => i.currency)?.currency ?? "EUR";
   const priceSteps = [8, 10, 15, 25, 50, 100].filter((s) => prices.some((p) => p <= s) && prices.some((p) => p > s)).slice(0, 3);
 
-  const filtered = ranked.filter(({ item }) => {
+  const filtered = ranked.filter(({ item, variants }) => {
     if (typeFilter !== "all" && item.extracted_data.wine_type !== typeFilter) return false;
-    if (maxPrice != null && (item.price == null || item.price > maxPrice)) return false;
+    if (maxPrice != null && ![item, ...variants].some((v) => v.price != null && v.price <= maxPrice)) return false;
     return true;
   });
   const confident = filtered.filter((r) => r.match.confidence !== "insufficient");
@@ -124,7 +132,7 @@ export default function ScanResultPage() {
   return (
     <Page>
       {topBar}
-      <PageHeading eyebrow={`${items.length} ${items.length === 1 ? "Wein" : "Weine"} erkannt`} title="Diese Weine passen zu dir." subtitle="Wir haben die Weinkarte mit deinem persönlichen Geschmack verglichen." className="pt-2" />
+      <PageHeading eyebrow={`${ranked.length} ${ranked.length === 1 ? "Wein" : "Weine"} erkannt`} title="Diese Weine passen zu dir." subtitle="Wir haben die Weinkarte mit deinem persönlichen Geschmack verglichen." className="pt-2" />
 
       {favorite && (
         <FavoriteCard
@@ -144,7 +152,7 @@ export default function ScanResultPage() {
             options={(["all", ...presentTypes] as TypeFilter[]).map((t) => ({
               value: t,
               label: TYPE_LABEL[t],
-              count: t === "all" ? items.length : items.filter((i) => i.extracted_data.wine_type === t).length,
+              count: t === "all" ? ranked.length : ranked.filter((r) => r.item.extracted_data.wine_type === t).length,
             }))}
           />
         )}
@@ -172,8 +180,8 @@ export default function ScanResultPage() {
         <p className="rounded-2xl bg-cream/70 p-4 text-[14px] text-taupe">Für diesen Filter gibt es keine sicheren Einschätzungen.</p>
       ) : (
         <ul className="space-y-3">
-          {rest.map(({ item, match }, i) => (
-            <WineListCard key={item.id} index={i} rank={(favorite ? 2 : 1) + i} wine={item.extracted_data} match={match} to={`/scan/${scan.id}/wein/${item.id}`} />
+          {rest.map(({ item, match, variants }, i) => (
+            <WineListCard key={item.id} index={i} rank={(favorite ? 2 : 1) + i} wine={item.extracted_data} match={match} to={`/scan/${scan.id}/wein/${item.id}`} extra={variantsNote(variants)} />
           ))}
         </ul>
       )}
@@ -183,8 +191,8 @@ export default function ScanResultPage() {
           <h2 className="font-serif text-[20px] text-charcoal">Zu wenig Infos</h2>
           <p className="mt-1 mb-3 text-[14px] text-taupe">Diese Einträge konnten wir nicht sicher einschätzen – zum Beispiel, weil nur ein Name auf der Karte steht.</p>
           <ul className="space-y-3">
-            {unsure.map(({ item, match }, i) => (
-              <WineListCard key={item.id} index={i} wine={item.extracted_data} match={match} to={`/scan/${scan.id}/wein/${item.id}`} />
+            {unsure.map(({ item, match, variants }, i) => (
+              <WineListCard key={item.id} index={i} wine={item.extracted_data} match={match} to={`/scan/${scan.id}/wein/${item.id}`} extra={variantsNote(variants)} />
             ))}
           </ul>
         </section>
