@@ -1,0 +1,25 @@
+# Abhängigkeiten & Builds
+node_modules/
+dist/
+dev-dist/
+*.tsbuildinfo
+coverage/
+
+# Geheimnisse – niemals committen
+.env
+.env.*
+!.env.example
+supabase/.env
+supabase/functions/.env
+supabase/.temp/
+supabase/.branches/
+*.pem
+*.key
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
+screenshots/

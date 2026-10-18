@@ -1,0 +1,124 @@
+@import "tailwindcss";
+@import "@fontsource-variable/playfair-display";
+@import "@fontsource-variable/dm-sans";
+
+/* ───────────────────────── VINO Design Tokens ───────────────────────── */
+@theme {
+  --color-burgundy: #531f32;
+  --color-burgundy-deep: #351522;
+  --color-burgundy-soft: #7a3a50;
+  --color-ivory: #faf7f2;
+  --color-cream: #f2ece4;
+  --color-cream-deep: #e9e0d4;
+  --color-taupe: #887d77;
+  --color-gold: #c6a878;
+  --color-gold-soft: #e3d3b5;
+  --color-charcoal: #242022;
+  --color-success: #587b65;
+  --color-line: #e4dace;
+  --color-danger: #9b3b3b;
+
+  /* Semantische Tokens (shadcn-kompatibel) */
+  --color-background: var(--color-ivory);
+  --color-foreground: var(--color-charcoal);
+  --color-card: var(--color-cream);
+  --color-card-foreground: var(--color-charcoal);
+  --color-primary: var(--color-burgundy);
+  --color-primary-foreground: var(--color-ivory);
+  --color-muted: var(--color-cream);
+  --color-muted-foreground: var(--color-taupe);
+  --color-accent: var(--color-gold);
+  --color-border: var(--color-line);
+  --color-ring: var(--color-gold);
+
+  --font-serif: "Playfair Display Variable", "Playfair Display", Georgia, serif;
+  --font-sans: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --radius-sm: 0.625rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-2xl: 2.25rem;
+
+  --shadow-soft: 0 1px 2px rgb(53 21 34 / 0.04), 0 8px 24px -12px rgb(53 21 34 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(53 21 34 / 0.05), 0 18px 40px -18px rgb(53 21 34 / 0.28);
+  --shadow-glow: 0 18px 50px -20px rgb(83 31 50 / 0.55);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "ss01", "cv11";
+    overscroll-behavior-y: none;
+  }
+  h1, h2, h3 {
+    @apply font-serif;
+    letter-spacing: -0.015em;
+  }
+  ::selection {
+    background: rgb(198 168 120 / 0.35);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  button, [role="button"], a {
+    touch-action: manipulation;
+  }
+}
+
+@utility pt-safe {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+@utility pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+@utility text-balance {
+  text-wrap: balance;
+}
+@utility text-pretty {
+  text-wrap: pretty;
+}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Feines Papierkorn für Premium-Flächen */
+@utility grain {
+  position: relative;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.06;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    border-radius: inherit;
+  }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

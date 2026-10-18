@@ -1,0 +1,50 @@
+# Supabase-CLI-Konfiguration für VINO.
+# Für die Cloud zählt vor allem der [functions]-Abschnitt und die Migrationen.
+project_id = "vino"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[storage]
+enabled = true
+file_size_limit = "6MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+# Unsichtbare Anmeldung – muss auch im Cloud-Dashboard aktiviert werden.
+enable_anonymous_sign_ins = true
+enable_signup = true
+
+[auth.rate_limit]
+# Anonyme Anmeldungen pro Stunde und IP (Missbrauchsschutz)
+anonymous_users = 30
+
+# verify_jwt = false: Jede Function prüft das JWT selbst über supabase.auth.getUser()
+# (kompatibel mit den neuen asymmetrischen JWT-Signing-Keys).
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+
+[functions.analyze-wine-image]
+verify_jwt = false
+import_map = "./functions/analyze-wine-image/deno.json"
+
+[functions.generate-wine-explanation]
+verify_jwt = false
+import_map = "./functions/generate-wine-explanation/deno.json"
+
+[functions.delete-my-data]
+verify_jwt = false
+import_map = "./functions/delete-my-data/deno.json"
