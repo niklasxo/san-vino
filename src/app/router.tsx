@@ -4,6 +4,7 @@ import { usesHashRouter } from "@/lib/config";
 import { AppShell } from "@/components/layout/app-shell";
 import { SplashScreen } from "@/components/layout/states";
 import { RootLayout } from "./root-layout";
+import { RouteError } from "./route-error";
 
 // Seiten werden erst bei Bedarf geladen (kleineres Start-Bundle).
 const page = (load: () => Promise<{ default: React.ComponentType }>) => () => load().then((m) => ({ Component: m.default }));
@@ -15,12 +16,14 @@ export const router = createRouter([
   {
     element: <RootLayout />,
     hydrateFallbackElement: <SplashScreen />,
+    errorElement: <RouteError />,
     children: [
       { path: "/willkommen", lazy: page(() => import("@/pages/welcome")) },
       { path: "/onboarding", lazy: page(() => import("@/pages/onboarding")) },
       { path: "/onboarding/ergebnis", lazy: page(() => import("@/pages/onboarding-result")) },
       {
         element: <AppShell />,
+        errorElement: <RouteError />,
         children: [
           { path: "/", lazy: page(() => import("@/pages/home")) },
           { path: "/scannen", lazy: page(() => import("@/pages/scan")) },
