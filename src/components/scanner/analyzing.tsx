@@ -12,34 +12,72 @@ const TEXT: Partial<Record<ScanPhase, string>> = {
 /** Erwartete Dauer bis zum Ergebnis – der Countdown zeigt sie als Zahl im Kreis. */
 export const SCAN_TARGET_SECONDS = 15;
 
+/**
+ * Eleganter Countdown im Glas-Look: hauchdünner Goldring, der sich gleichmäßig leert,
+ * große Serifenziffer, die weich wechselt.
+ */
 function Countdown({ seconds }: { seconds: number }) {
   const [left, setLeft] = React.useState(seconds);
   React.useEffect(() => {
     const started = Date.now();
-    const id = setInterval(() => setLeft(Math.max(0, seconds - Math.floor((Date.now() - started) / 1000))), 250);
+    const id = setInterval(() => setLeft(Math.max(0, seconds - Math.floor((Date.now() - started) / 1000))), 200);
     return () => clearInterval(id);
   }, [seconds]);
-  const r = 26;
-  const circumference = 2 * Math.PI * r;
+  const r = 40;
   return (
-    <div className="relative size-16" aria-label={left > 0 ? `Noch etwa ${left} Sekunden` : "Gleich fertig"}>
-      <svg viewBox="0 0 64 64" className="size-16 -rotate-90">
-        <circle cx="32" cy="32" r={r} fill="none" strokeWidth="5" className="stroke-current text-cream" />
-        <circle
-          cx="32"
-          cy="32"
+    <div
+      className="relative grid size-[96px] place-items-center rounded-full bg-ivory/75 shadow-[0_10px_30px_-12px_rgba(53,21,34,0.45),inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-white/70 backdrop-blur-xl"
+      aria-label={left > 0 ? `Noch etwa ${left} Sekunden` : "Gleich fertig"}
+    >
+      <svg viewBox="0 0 96 96" className="absolute inset-0 size-full -rotate-90" aria-hidden>
+        <defs>
+          <linearGradient id="countdown-ring" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="var(--color-gold)" />
+            <stop offset="100%" stopColor="var(--color-burgundy-soft)" />
+          </linearGradient>
+        </defs>
+        <circle cx="48" cy="48" r={r} fill="none" strokeWidth="1.5" stroke="var(--color-gold-soft)" opacity="0.6" />
+        <motion.circle
+          cx="48"
+          cy="48"
           r={r}
           fill="none"
-          strokeWidth="5"
+          strokeWidth="2.5"
           strokeLinecap="round"
-          className="stroke-current text-burgundy transition-[stroke-dashoffset] duration-300 ease-linear"
-          strokeDasharray={circumference}
-          strokeDashoffset={circumference * (1 - left / seconds)}
+          stroke="url(#countdown-ring)"
+          initial={{ pathLength: 1, opacity: 1 }}
+          animate={{ pathLength: 0, opacity: [1, 1, 0] }}
+          transition={{ duration: seconds, ease: "linear", opacity: { duration: seconds, times: [0, 0.97, 1] } }}
         />
+        {left === 0 && (
+          <motion.circle
+            cx="48"
+            cy="48"
+            r={r}
+            fill="none"
+            strokeWidth="2"
+            stroke="var(--color-gold)"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0.2, 0.8, 0.2] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
       </svg>
-      <span className="absolute inset-0 grid place-items-center font-serif text-[22px] tabular-nums text-charcoal">
-        {left > 0 ? left : "…"}
-      </span>
+      <div className="relative flex flex-col items-center leading-none">
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            key={left}
+            initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="font-serif text-[34px] tabular-nums text-burgundy"
+          >
+            {left > 0 ? left : "·"}
+          </motion.span>
+        </AnimatePresence>
+        <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.22em] text-taupe">{left > 0 ? "Sek." : "gleich"}</span>
+      </div>
     </div>
   );
 }
@@ -65,10 +103,10 @@ export function AnalyzingView({ previews, phase, slow, isMenu }: { previews: str
           ))}
         </div>
       </div>
-      <div className="mt-7">
+      <div className="relative z-10 -mt-12">
         <Countdown seconds={SCAN_TARGET_SECONDS} />
       </div>
-      <div className="mt-4 h-16">
+      <div className="mt-5 h-16">
         <AnimatePresence mode="wait">
           <motion.p
             key={phase}
