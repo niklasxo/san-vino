@@ -266,6 +266,12 @@ export class SupabaseRepository implements VinoRepository {
   async deleteAllData() {
     const { error } = await this.db.functions.invoke("delete-my-data", { body: { confirm: "DELETE" } });
     if (error) throw new AppError("unreachable", error.message);
-    await this.db.auth.signOut({ scope: "local" });
+    // Der Nutzer existiert serverseitig nicht mehr – ein Abmelde-Aufruf ergäbe nur 403. Sitzung lokal verwerfen,
+    // danach lädt die App neu und legt eine frische anonyme Sitzung an.
+    try {
+      localStorage.removeItem("vino-session");
+    } catch {
+      /* Speicher gesperrt – Sitzung lebte dann nur im Arbeitsspeicher und endet mit dem Neuladen */
+    }
   }
 }

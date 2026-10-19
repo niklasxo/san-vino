@@ -21,6 +21,21 @@ export const keys = {
   swipes: ["taste-swipes"] as const,
 };
 
+/**
+ * Profil-Neuberechnungen nacheinander ausführen: Zwei schnelle Bewertungen hintereinander dürfen sich nicht
+ * gegenseitig überschreiben (die spätere Berechnung kennt immer alle bisherigen Bewertungen).
+ */
+let relearnChain: Promise<unknown> = Promise.resolve();
+function queueRelearn(qc: ReturnType<typeof useQueryClient>) {
+  const run = relearnChain.then(async () => {
+    const res = await relearnProfile(repository);
+    if (res) await qc.invalidateQueries({ queryKey: keys.profile });
+    return res;
+  });
+  relearnChain = run.catch(() => undefined);
+  return run;
+}
+
 export function useProfileState() {
   return useQuery({ queryKey: keys.profile, queryFn: () => repository.getProfileState(), staleTime: 60_000 });
 }
@@ -74,8 +89,7 @@ export function useSwipeSession() {
     const waiting = pending.current;
     pending.current = [];
     await Promise.allSettled(waiting);
-    await relearnProfile(repository);
-    await qc.invalidateQueries({ queryKey: keys.profile });
+    await queueRelearn(qc);
   }, [qc]);
 
   const answer = React.useCallback(
@@ -155,14 +169,18 @@ export function useUpdateSavedWine() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: { is_favorite?: boolean; has_tried?: boolean } }) => repository.updateSavedWine(id, patch),
+    // Sofort anzeigen – auf der Liste UND auf den Detailseiten (Wein aus der Sammlung bzw. vom Scan).
     onMutate: async ({ id, patch }) => {
       await qc.cancelQueries({ queryKey: keys.savedWines });
-      const prev = qc.getQueryData<SavedWine[]>(keys.savedWines);
-      qc.setQueryData<SavedWine[]>(keys.savedWines, (list) => list?.map((w) => (w.id === id ? { ...w, ...patch } : w)));
-      return { prev };
+      const snapshot = qc.getQueriesData<SavedWine[] | SavedWine | null>({ queryKey: keys.savedWines });
+      for (const [key, data] of snapshot) {
+        if (Array.isArray(data)) qc.setQueryData(key, data.map((w) => (w.id === id ? { ...w, ...patch } : w)));
+        else if (data?.id === id) qc.setQueryData(key, { ...data, ...patch });
+      }
+      return { snapshot };
     },
     onError: (err, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(keys.savedWines, ctx.prev);
+      for (const [key, data] of ctx?.snapshot ?? []) qc.setQueryData(key, data);
       toast.error(describeError(err).title);
     },
     onSettled: () => invalidateWines(qc),
@@ -175,9 +193,8 @@ export function useRemoveSavedWine() {
     mutationFn: (id: string) => repository.removeSavedWine(id),
     onSuccess: async () => {
       await invalidateWines(qc);
-      // Bewertungen dieses Weins fließen nicht mehr ins Profil ein.
-      const res = await relearnProfile(repository);
-      if (res) await qc.invalidateQueries({ queryKey: keys.profile });
+      // Bewertungen dieses Weins fließen nicht mehr ins Profil ein (im Hintergrund).
+      void queueRelearn(qc).catch(() => undefined);
     },
     onError: (err) => toast.error(describeError(err).title),
   });
@@ -186,12 +203,11 @@ export function useRemoveSavedWine() {
 export function useRateWine() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ userWineId, input }: { userWineId: string; input: RatingInput }) => {
-      await repository.upsertRating(userWineId, input);
-      return relearnProfile(repository);
-    },
+    // Sofort fertig, sobald die Bewertung gespeichert ist – das Profil lernt danach im Hintergrund.
+    mutationFn: ({ userWineId, input }: { userWineId: string; input: RatingInput }) => repository.upsertRating(userWineId, input),
     onSuccess: async () => {
-      await Promise.all([invalidateWines(qc), qc.invalidateQueries({ queryKey: keys.profile })]);
+      void queueRelearn(qc).catch(() => undefined);
+      await invalidateWines(qc);
     },
   });
 }

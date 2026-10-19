@@ -55,7 +55,7 @@ await shot("07-scan");
 await page.getByRole("button", { name: /Weinkarte scannen/ }).click();
 await page.locator("input[capture]").setInputFiles("tests/fixtures/demo-label.jpg");
 await shot("08-preview");
-await page.getByRole("button", { name: /Weinkarte analysieren/ }).click();
+await page.getByRole("button", { name: /Karte analysieren/ }).click();
 await page.waitForTimeout(500);
 await page.screenshot({ path: `${out}/09-analyzing.png` });
 await page.waitForURL(/\/scan\/[^/]+$/, { timeout: 15000 });

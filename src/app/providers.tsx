@@ -3,6 +3,8 @@ import { MotionConfig } from "motion/react";
 import * as React from "react";
 import { DemoBanner, OfflineBanner } from "@/components/layout/banners";
 import { Toaster } from "@/components/ui/toaster";
+import { hydrateQueryCache, persistQueryCache } from "@/lib/query-cache";
+import { isDemo } from "@/services";
 import { SessionProvider } from "./session";
 
 const queryClient = new QueryClient({
@@ -14,6 +16,12 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Sofortstart aus dem Zwischenspeicher (vor dem ersten Rendern), danach Änderungen mitschreiben.
+if (!isDemo) {
+  hydrateQueryCache(queryClient);
+  persistQueryCache(queryClient);
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

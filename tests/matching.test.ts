@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeMatch, dimensionSimilarity, MATCH_WEIGHTS, matchCategory } from "@shared/matching.ts";
 import { demoWine, DEMO_MENU, DEMO_PRIMITIVO, DEMO_RIESLING, DEMO_UNCERTAIN } from "@/demo/fixtures";
-import { rankItems, shortReason } from "@/lib/matching";
+import { likelyDislikes, rankItems, shortReason } from "@/lib/matching";
 import type { ScanItem } from "@/types/domain";
 import { DRY_BOLD_ANSWERS, FRESH_ANSWERS, FRUITY_SWEET_ANSWERS, profileFrom } from "./helpers";
 
@@ -116,5 +116,16 @@ describe("Matching", () => {
     const m = computeMatch(fruity, BAROLO);
     expect(shortReason(m, BAROLO)).toMatch(/als du es magst|als dein/);
     expect(shortReason(computeMatch(fruity, DEMO_UNCERTAIN), DEMO_UNCERTAIN)).toMatch(/Zu wenig Infos/);
+  });
+
+  it("nennt die wichtigste Abweichung, nicht ein nie abgefragtes Nebenmerkmal wie Holz", () => {
+    // Heutiges Onboarding (6 Fragen) fragt Holz nicht ab → Holz-Vorliebe ist nur ein geschätzter Mittelwert.
+    const sweet = profileFrom({ q1_sweetness: "bit_sweet", q2_acidity: "mild", q3_fruits: ["strawberry_cherry", "blackberry_dark"], q4_intensity: "intense", q5_bitterness: "small", q9_wine_type: "red" });
+    for (const w of [DEMO_RIESLING, ...DEMO_MENU]) {
+      const m = computeMatch(sweet, w);
+      expect(shortReason(m, w)).not.toMatch(/Holznote, die du magst/);
+      expect(likelyDislikes(m).join(" ")).not.toMatch(/Holznote, die du magst/);
+    }
+    expect(shortReason(computeMatch(sweet, DEMO_RIESLING), DEMO_RIESLING)).toMatch(/trockener als du es magst/);
   });
 });

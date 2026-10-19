@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useDeleteAllData, useProfileState, useResetProfile, useSavedWines, useSwipes } from "@/hooks/queries";
 import { reloadAtStart } from "@/lib/config";
+import { clearQueryCache } from "@/lib/query-cache";
 import { describeError } from "@/lib/errors";
 import { describeProfile, PREFERABLE_TYPE_LABEL, profileCertainty } from "@/lib/taste-profile/describe";
 import { SWIPE_QUESTIONS } from "@/lib/taste-profile/swipes";
@@ -26,11 +27,13 @@ export default function TastePage() {
   const deleteAll = useDeleteAllData();
   const swipes = useSwipes();
   const swipeCount = swipes.data ? Object.keys(swipes.data).length : 0;
-  const profile = data!.taste!.learned;
+  // Kurz nach „Profil zurücksetzen“/„Alle Daten löschen“ gibt es kein Profil mehr – dann wird gleich weitergeleitet.
+  if (!data?.taste) return null;
+  const profile = data.taste.learned;
   const type = determineTasteType(profile);
   const certainty = profileCertainty(profile);
   const ratedCount = (saved.data ?? []).filter((w) => w.rating).length;
-  const learnedShift = data!.taste!.learned.ratings_count > 0;
+  const learnedShift = profile.ratings_count > 0;
 
   return (
     <Page>
@@ -167,6 +170,7 @@ export default function TastePage() {
               try {
                 await deleteAll.mutateAsync();
                 qc.clear();
+                clearQueryCache();
                 reloadAtStart();
               } catch (err) {
                 toast.error(describeError(err).title, { description: describeError(err).text });

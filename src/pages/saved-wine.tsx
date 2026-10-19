@@ -40,7 +40,7 @@ export default function SavedWinePage() {
       </Page>
     );
   }
-  if (q.error) return <Page><TopBar /><InlineError error={q.error} onRetry={() => q.refetch()} /></Page>;
+  if (q.error && !q.data) return <Page><TopBar /><InlineError error={q.error} onRetry={() => q.refetch()} /></Page>;
   if (!q.data || !wine) {
     return (
       <Page>

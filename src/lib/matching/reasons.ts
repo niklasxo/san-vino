@@ -62,8 +62,12 @@ function goodTraits(match: MatchResult, wine: ExtractedWine): string[] {
     .slice(0, 2);
 }
 
+/** Größte Abweichungen zuerst – gewichtet, damit Nebenmerkmale (z. B. Holz) nicht die Hauptsache verdrängen. */
 function worstMismatches(match: MatchResult, n = 2): DimensionBreakdown[] {
-  return match.breakdown.filter((b) => b.similarity < 0.7).sort((a, b) => a.similarity * a.effectiveWeight - b.similarity * b.effectiveWeight).slice(0, n);
+  const cost = (b: DimensionBreakdown) => (1 - b.similarity) * b.effectiveWeight;
+  // „Ohne die Holznote, die du magst“ nur, wenn Holz/Würze wirklich gemocht wird – nicht beim geschätzten Mittelwert.
+  const statable = (b: DimensionBreakdown) => !((b.dimension === "oak" || b.dimension === "spice") && b.direction < 0 && b.userValue < 60);
+  return match.breakdown.filter((b) => b.similarity < 0.7 && statable(b)).sort((a, b) => cost(b) - cost(a)).slice(0, n);
 }
 
 export function shortReason(match: MatchResult, wine: ExtractedWine): string {

@@ -9,26 +9,48 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>,
 );
 
-// Häufig genutzte Seiten im Leerlauf vorladen → Wechsel zu Scan & Ergebnis ohne Ladepause.
-const warmUp = () => {
-  void import("@/pages/scan");
-  void import("@/pages/scan-result");
-  void import("@/pages/scan-item");
-  void import("@/pages/home");
+// Alle Seiten vorladen (zusammen klein) → jeder Wechsel ohne Ladepause, und nach einem App-Update fehlen
+// der laufenden Version keine Dateien. Erst NACH dem ersten Bildschirm – sonst konkurriert es beim
+// Erstbesuch über Mobilfunk mit dem, was gerade gebraucht wird (gemessen: +0,6 s bis zum ersten Inhalt).
+const warmUp = async () => {
+  await Promise.allSettled([import("@/pages/home"), import("@/pages/scan"), import("@/pages/scan-result"), import("@/pages/scan-item")]);
+  void import("@/pages/my-wines");
+  void import("@/pages/saved-wine");
+  void import("@/pages/taste");
+  void import("@/pages/taste-swipe");
+  void import("@/pages/my-wine");
+  void import("@/pages/ratings");
+  void import("@/pages/welcome");
+  void import("@/pages/onboarding");
+  void import("@/pages/onboarding-result");
 };
-if ("requestIdleCallback" in window) window.requestIdleCallback(warmUp, { timeout: 4000 });
-else setTimeout(warmUp, 2500);
+const scheduleWarmUp = () =>
+  window.setTimeout(() => {
+    if ("requestIdleCallback" in window) window.requestIdleCallback(() => void warmUp(), { timeout: 3000 });
+    else void warmUp();
+  }, 2500);
+if (document.readyState === "complete") scheduleWarmUp();
+else window.addEventListener("load", scheduleWarmUp, { once: true });
 
-// Neue App-Versionen sofort übernehmen: Der Service Worker (autoUpdate) aktiviert sich direkt,
-// danach laden wir einmal neu. Beim Öffnen/Zurückkehren wird aktiv nach Updates gesucht –
-// sonst sähe man eine neue Version erst beim übernächsten Öffnen der Home-Bildschirm-App.
+// Neue App-Versionen übernehmen: Der Service Worker (autoUpdate) aktiviert sich direkt. Neu geladen wird
+// aber nur, wenn es niemand merkt – direkt beim Öffnen oder bei der Rückkehr nach über einer Minute.
+// Nie mitten in der Nutzung: Die Kamera schickt die App auf dem iPhone kurz in den Hintergrund,
+// deshalb nie beim Scannen und nie nach kurzer Abwesenheit (Foto in der Vorschau ginge verloren).
 if ("serviceWorker" in navigator) {
   const hadController = Boolean(navigator.serviceWorker.controller);
+  const openedAt = Date.now();
   let reloading = false;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (!hadController || reloading) return; // Erstinstallation: nichts neu zu laden
+  let updateWaiting = false;
+  let hiddenAt = 0;
+  const reload = () => {
+    if (reloading) return;
     reloading = true;
     window.location.reload();
+  };
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController) return; // Erstinstallation: nichts neu zu laden
+    if (Date.now() - openedAt < 4_000) reload();
+    else updateWaiting = true;
   });
   const checkForUpdate = () =>
     navigator.serviceWorker
@@ -36,7 +58,13 @@ if ("serviceWorker" in navigator) {
       .then((r) => r?.update())
       .catch(() => undefined);
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") void checkForUpdate();
+    if (document.visibilityState === "hidden") {
+      hiddenAt = Date.now();
+      return;
+    }
+    const away = hiddenAt > 0 && Date.now() - hiddenAt > 60_000;
+    if (updateWaiting && away && !window.location.pathname.startsWith("/scan")) return reload();
+    void checkForUpdate();
   });
   setInterval(checkForUpdate, 30 * 60 * 1000);
 }

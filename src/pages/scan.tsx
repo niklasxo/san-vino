@@ -6,10 +6,13 @@ import { toast } from "sonner";
 import { Page, PageHeading } from "@/components/layout/page";
 import { AnalyzingView } from "@/components/scanner/analyzing";
 import { Button } from "@/components/ui/button";
+import { ActionBar } from "@/components/wine/wine-actions";
 import { Segmented } from "@/components/ui/chip";
+import { useQueryClient } from "@tanstack/react-query";
+import { prefetchExplanation, useTasteProfile } from "@/hooks/queries";
 import { useScanWorkflow } from "@/hooks/use-scan-workflow";
 import { describeError } from "@/lib/errors";
-import { ACCEPTED_TYPES, ImageError, type PreparedImage, prepareImage } from "@/lib/image/prepare";
+import { ImageError, type PreparedImage, prepareImage } from "@/lib/image/prepare";
 import { warmUpFunction } from "@/lib/supabase/warm-up";
 import { cn } from "@/lib/utils";
 import type { ScanType } from "@/types/domain";
@@ -32,6 +35,8 @@ export default function ScanPage() {
   const cameraInput = React.useRef<HTMLInputElement>(null);
   const galleryInput = React.useRef<HTMLInputElement>(null);
   const flow = useScanWorkflow();
+  const qc = useQueryClient();
+  const { profile, version } = useTasteProfile();
 
   React.useEffect(() => () => images.forEach((i) => URL.revokeObjectURL(i.previewUrl)), []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -100,6 +105,8 @@ export default function ScanPage() {
       return;
     }
     if (result.scan.scan_type === "bottle" && result.items.length === 1) {
+      // Persönliche Erklärung schon jetzt anfordern – die Detailseite zeigt sie dann ohne Wartezeit.
+      if (profile) void prefetchExplanation(qc, result.items[0].id, version);
       navigate(`/scan/${result.scan.id}/wein/${result.items[0].id}`, { replace: false });
     } else {
       navigate(`/scan/${result.scan.id}`);
@@ -109,12 +116,14 @@ export default function ScanPage() {
   const busy = flow.phase === "uploading" || flow.phase === "analyzing" || flow.phase === "matching";
 
   return (
-    <Page>
+    <Page className={images.length > 0 && !busy ? "pb-[calc(170px+env(safe-area-inset-bottom))]" : undefined}>
       <input ref={cameraInput} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onFiles(e.target.files)} aria-hidden tabIndex={-1} />
       <input
         ref={galleryInput}
         type="file"
-        accept={[...ACCEPTED_TYPES, "image/*"].join(",")}
+        // Nur „image/*“: Steht HEIC ausdrücklich drin, reicht iOS das Original-HEIC durch statt es in JPEG
+        // umzuwandeln – ältere iOS-Versionen können HEIC im Browser aber nicht öffnen.
+        accept="image/*"
         multiple={type === "menu"}
         className="hidden"
         onChange={(e) => onFiles(e.target.files)}
@@ -206,20 +215,23 @@ export default function ScanPage() {
               </div>
             )}
 
-            <div className="mt-6 space-y-2">
-              {emptyResult ? (
-                <Button block onClick={() => { startOver(); cameraInput.current?.click(); }}>
-                  <Camera /> Neues Foto aufnehmen
+            {/* Immer sichtbar über der Navigation – sonst liegt der Hauptknopf nach dem Foto unterhalb des Bildschirms. */}
+            <ActionBar>
+              <div className="flex gap-2">
+                <Button variant="secondary" size="md" onClick={startOver}>
+                  Abbrechen
                 </Button>
-              ) : (
-                <Button block onClick={analyze} disabled={preparing}>
-                  {flow.phase === "error" ? <><RotateCcw /> Erneut versuchen</> : <><ScanLine /> {type === "menu" ? "Weinkarte analysieren" : "Wein analysieren"}</>}
-                </Button>
-              )}
-              <Button variant="ghost" block onClick={startOver}>
-                Abbrechen
-              </Button>
-            </div>
+                {emptyResult ? (
+                  <Button size="md" className="min-w-0 flex-1" onClick={() => { startOver(); cameraInput.current?.click(); }}>
+                    <Camera /> Neues Foto
+                  </Button>
+                ) : (
+                  <Button size="md" className="min-w-0 flex-1" onClick={analyze} disabled={preparing}>
+                    {flow.phase === "error" ? <><RotateCcw /> Erneut versuchen</> : <><ScanLine /> {type === "menu" ? "Karte analysieren" : "Wein analysieren"}</>}
+                  </Button>
+                )}
+              </div>
+            </ActionBar>
           </motion.div>
         )}
       </AnimatePresence>

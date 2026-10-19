@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { keys } from "@/hooks/queries";
 import { repository } from "@/services";
 import { formatPrice } from "@/lib/utils";
+import { describeError } from "@/lib/errors";
 import { warmUpFunction } from "@/lib/supabase/warm-up";
 import { priceLabel } from "@/components/wine/price";
 import type { ScanItem } from "@/types/domain";
@@ -51,7 +52,12 @@ export default function ScanResultPage() {
   }, [top, version, qc]);
 
   const deleteScan = async () => {
-    await repository.deleteScan(scanId!);
+    try {
+      await repository.deleteScan(scanId!);
+    } catch (err) {
+      toast.error(describeError(err).title, { description: describeError(err).text });
+      throw err;
+    }
     qc.removeQueries({ queryKey: keys.scan(scanId!) });
     await qc.invalidateQueries({ queryKey: keys.recentScans });
     toast.success("Scan und Fotos gelöscht");
@@ -91,7 +97,7 @@ export default function ScanResultPage() {
       </Page>
     );
   }
-  if (scanQuery.error) return <Page>{topBar}<InlineError error={scanQuery.error} onRetry={() => scanQuery.refetch()} /></Page>;
+  if (scanQuery.error && !scanQuery.data) return <Page>{topBar}<InlineError error={scanQuery.error} onRetry={() => scanQuery.refetch()} /></Page>;
   if (!scanQuery.data) return <Page>{topBar}<EmptyState icon={<HelpCircle />} title="Scan nicht gefunden" text="Vielleicht wurde er gelöscht." action={<Button size="md" onClick={() => navigate("/scannen")}>Neuer Scan</Button>} /></Page>;
 
   const { scan, items } = scanQuery.data;

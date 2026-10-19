@@ -105,7 +105,7 @@ export default function ScanItemPage() {
       </Page>
     );
   }
-  if (scanQuery.error) return <Page><TopBar /><InlineError error={scanQuery.error} onRetry={() => scanQuery.refetch()} /></Page>;
+  if (scanQuery.error && !scanQuery.data) return <Page><TopBar /><InlineError error={scanQuery.error} onRetry={() => scanQuery.refetch()} /></Page>;
   if (!item || !scan) {
     return (
       <Page>

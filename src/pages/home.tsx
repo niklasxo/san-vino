@@ -35,7 +35,8 @@ export default function HomePage() {
   const { data: state } = useProfileState();
   const recent = useRecentScans(6);
   const saved = useSavedWines();
-  const profile = state!.taste!.learned;
+  if (!state?.taste) return null; // Profil gerade gelöscht – AppShell leitet zum Willkommen weiter
+  const profile = state.taste.learned;
   const type = determineTasteType(profile);
   const favorites = (saved.data ?? []).filter((w) => w.is_favorite).slice(0, 3);
   const tip = tipFor(type.id);
@@ -63,7 +64,7 @@ export default function HomePage() {
         <h2 className="mt-5 font-serif text-[28px] leading-tight">Wein scannen</h2>
         <p className="mt-1.5 max-w-[16rem] text-[15px] leading-relaxed text-ivory/75">Fotografiere eine Flasche oder eine Weinkarte.</p>
         <Button variant="light" className="mt-6" onClick={() => navigate("/scannen")}>
-          <ScanLine /> Kamera öffnen
+          <ScanLine /> Jetzt scannen
         </Button>
       </motion.section>
 

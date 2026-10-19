@@ -8,7 +8,7 @@ import { describeError } from "@/lib/errors";
 export function SplashScreen({ label = "Einen Moment …" }: { label?: string }) {
   return (
     <div className="grid min-h-dvh place-items-center bg-ivory" role="status" aria-live="polite">
-      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="flex flex-col items-center gap-5">
+      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.35 }} className="flex flex-col items-center gap-5">
         <Logo className="text-[28px]" />
         <div className="h-[2px] w-24 overflow-hidden rounded-full bg-cream">
           <motion.div

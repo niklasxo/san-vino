@@ -54,7 +54,7 @@ export function RatingSheet({
 
   const save = async () => {
     try {
-      const res = await rate.mutateAsync({
+      await rate.mutateAsync({
         userWineId,
         input: {
           verdict,
@@ -65,8 +65,8 @@ export function RatingSheet({
         },
       });
       onOpenChange(false);
-      toast.success("Danke! Dein Geschmacksprofil wurde aktualisiert.", {
-        description: res ? "SAN VINO hat aus deiner Bewertung gelernt." : undefined,
+      toast.success("Danke für deine Bewertung!", {
+        description: "SAN VINO lernt aus deiner Bewertung.",
       });
     } catch (err) {
       const d = describeError(err);

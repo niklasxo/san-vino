@@ -24,7 +24,7 @@ export default defineConfig({
         display: "standalone",
         orientation: "portrait",
         background_color: "#FAF7F2",
-        theme_color: "#531F32",
+        theme_color: "#FAF7F2", // wie <meta name="theme-color"> – sonst färbt Android die Statusleiste anders als iOS
         icons: [
           { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
@@ -34,7 +34,8 @@ export default defineConfig({
       workbox: {
         // Nur die App-Hülle wird gecacht. Supabase- und KI-Anfragen laufen immer über das Netzwerk.
         globPatterns: ["**/*.{js,css,html,svg,png}", "**/*latin-wght-normal*.woff2", "**/*latin-ext-wght-normal*.woff2"],
-        globIgnores: ["**/icons/icon-1024.png", "**/icons/icon-512.png", "**/icons/icon-maskable-512.png"],
+        // Startbilder lädt iOS selbst – nicht vorab cachen (sonst lädt jeder Erstbesuch 300 KB zusätzlich).
+        globIgnores: ["**/icons/icon-1024.png", "**/icons/icon-512.png", "**/icons/icon-maskable-512.png", "**/splash/**"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/functions\//, /^\/auth\//, /^\/rest\//, /^\/storage\//],
         runtimeCaching: [],

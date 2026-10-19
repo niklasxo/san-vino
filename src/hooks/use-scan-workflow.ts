@@ -7,10 +7,54 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { keys } from "@/hooks/queries";
+import { AppError } from "@/lib/errors";
 import { ai, repository } from "@/services";
 import type { ScanType, ScanWithItems } from "@/types/domain";
 
 type Draft = { scanId: string; uploads: Map<Blob, Promise<string>> };
+
+const sleep = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
+const errorCode = (err: unknown) => (err instanceof AppError ? err.code : "");
+
+/**
+ * Analyse, die kurze Unterbrechungen übersteht: Auf dem iPhone bricht die Verbindung ab, sobald man
+ * kurz die App wechselt oder der Bildschirm ausgeht – der Server rechnet aber weiter. Dann nicht mit
+ * einem Fehler abbrechen, sondern das fertige Ergebnis abholen (der Server liefert es ohne neue KI-Kosten).
+ */
+function analyzeResilient(scanId: string): Promise<ScanWithItems> {
+  const startedAt = Date.now();
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (fn: () => void) => {
+      if (settled) return;
+      settled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      fn();
+    };
+    // Zurück in der App: sofort nachsehen, ob das Ergebnis schon fertig ist.
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || Date.now() - startedAt < 3_000) return;
+      ai.analyzeScan(scanId).then((r) => finish(() => resolve(r)), () => undefined);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    void (async () => {
+      let dropped = 0;
+      for (;;) {
+        try {
+          const r = await ai.analyzeScan(scanId);
+          return finish(() => resolve(r));
+        } catch (err) {
+          const code = errorCode(err);
+          const transient = code === "already_running" || (code === "unreachable" && dropped++ < 3);
+          if (settled) return;
+          if (!transient || Date.now() - startedAt > 170_000) return finish(() => reject(err));
+          await sleep(code === "already_running" ? 2_000 : 1_500);
+        }
+      }
+    })();
+  });
+}
 
 export type ScanPhase = "idle" | "uploading" | "analyzing" | "matching" | "done" | "error";
 
@@ -77,7 +121,7 @@ export function useScanWorkflow() {
           uploaded.current = { scanId, signature };
         }
         setPhase("analyzing");
-        const result = await ai.analyzeScan(scanId);
+        const result = await analyzeResilient(scanId);
         setPhase("matching");
         qc.setQueryData(keys.scan(scanId), { scan: result.scan, items: result.items });
         void qc.invalidateQueries({ queryKey: keys.recentScans }); // im Hintergrund – Ergebnis sofort zeigen

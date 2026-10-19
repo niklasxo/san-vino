@@ -36,6 +36,8 @@ export function ConfirmDialog({ trigger, title, description, confirmLabel, cance
                 try {
                   await onConfirm();
                   setOpen(false);
+                } catch {
+                  // Fehler meldet onConfirm bzw. die Mutation selbst (Toast) – Dialog bleibt offen für einen neuen Versuch.
                 } finally {
                   setBusy(false);
                 }

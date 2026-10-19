@@ -7,7 +7,8 @@ import { BottomNav } from "./bottom-nav";
 export function AppShell() {
   const { data, isPending, error, refetch } = useProfileState();
   if (isPending) return <SplashScreen />;
-  if (error) return <FullScreenError error={error} onRetry={() => refetch()} />;
+  // Nur ohne (zwischengespeicherte) Daten blockieren – sonst bleibt die App bei Funklöchern benutzbar.
+  if (error && !data) return <FullScreenError error={error} onRetry={() => refetch()} />;
   if (!data.onboardingCompleted) return <Navigate to="/willkommen" replace />;
   return (
     <>

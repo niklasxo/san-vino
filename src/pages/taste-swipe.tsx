@@ -102,7 +102,8 @@ export default function TasteSwipePage() {
             <p className="mt-3 text-[14px] leading-relaxed text-taupe">Wisch nach rechts für „Ja“, nach links für „Nein“. Jede Antwort macht deine Empfehlungen genauer.</p>
           </div>
 
-          <div className="relative mt-6 h-[400px]">
+          {/* Kartenhöhe passt sich dem Bildschirm an – auf kleinen iPhones (SE, mini) bleiben Ja/Nein über der Navigation */}
+          <div className="relative mt-6 h-[clamp(280px,calc(100dvh-400px),400px)]">
             {deck[index + 1] && <CardFace question={deck[index + 1]} className="scale-[0.94] translate-y-3 opacity-70" />}
             <AnimatePresence custom={exit}>
               <SwipeCard key={current!.key} question={current!} onAnswer={answer} />
