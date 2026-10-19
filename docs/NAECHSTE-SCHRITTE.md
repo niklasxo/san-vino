@@ -54,7 +54,10 @@
       kompaktes KI-Format (`_shared/compact-analysis.ts`, ~3,3× weniger Ausgabe), Server parallel
       (Bilder, Profil, Katalog, Nutzungsprotokoll), gespeicherte Zeilen direkt zurück.
       App: Fotos werden schon in der Vorschau hochgeladen; Scan-ID im Browser; „Letzte Scans“ lädt im Hintergrund.
-      **Noch zu messen** (nächster echter Scan → Logs `gemini ok … out=`).
+      Gemessen 19.10. 07:09: Karte mit 14 Weinen **11,4 s gesamt**, KI 6,7 s (out 2.947 statt 6.250 Tokens).
+- [x] Kaltstart (~3,3 s gemessen) vermeiden: App weckt `analyze-wine-image` beim Öffnen des Scanners und
+      `generate-wine-explanation` während der Analyse (OPTIONS-Anfrage, `src/lib/supabase/warm-up.ts`).
+- [x] Erklärung: Flash-Lite springt nach 2,5 s ein (vorher 12 s) – `generate-wine-explanation` v6.
 
 ## Nächste Tempo-Ideen (nicht umgesetzt)
 0. Streaming: Weine erscheinen nacheinander, sobald die KI sie gelesen hat (größter gefühlter Gewinn).
