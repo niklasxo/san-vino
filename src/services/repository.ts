@@ -34,8 +34,12 @@ export interface VinoRepository {
   resetTasteProfile(): Promise<void>;
 
   // Scans
-  /** Legt den Scan an und lädt die Fotos hoch – beides parallel. Liefert die Scan-ID. */
-  createScanWithImages(type: ScanType, images: Blob[]): Promise<string>;
+  /** Lädt ein Foto vorab hoch (schon während der Vorschau). Liefert den Speicherpfad. */
+  uploadScanImage(scanId: string, image: Blob): Promise<string>;
+  /** Legt den Scan mit bereits hochgeladenen Fotos an (Scan-ID wird im Browser erzeugt). */
+  createScan(type: ScanType, scanId: string, imagePaths: string[]): Promise<void>;
+  /** Verworfene Vorab-Uploads wieder löschen. */
+  removeScanImages(paths: string[]): Promise<void>;
   getScan(scanId: string): Promise<ScanWithItems | null>;
   listRecentScans(limit: number): Promise<(Scan & { item_count: number; top_item: ScanItem | null })[]>;
   updateScanItem(itemId: string, patch: Partial<Pick<ScanItem, "extracted_data" | "price" | "currency" | "match_score" | "match_confidence" | "match_details">>): Promise<ScanItem>;

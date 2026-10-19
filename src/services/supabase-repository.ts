@@ -119,27 +119,25 @@ export class SupabaseRepository implements VinoRepository {
     check(await this.db.from("profiles").update({ taste_type: null, onboarding_completed: false }).eq("user_id", userId));
   }
 
-  async createScanWithImages(type: Scan["scan_type"], images: Blob[]): Promise<string> {
+  async uploadScanImage(scanId: string, image: Blob): Promise<string> {
     const userId = await currentUserId();
-    // ID im Browser erzeugen → Datensatz und alle Fotos gleichzeitig statt nacheinander (spart mehrere Roundtrips).
-    const scanId = crypto.randomUUID();
-    const paths = images.map((_, i) => `${userId}/${scanId}/${i}.jpg`);
-    const insert = this.db
-      .from("scans")
-      .insert({ id: scanId, user_id: userId, scan_type: type, image_paths: paths, image_path: paths[0], status: "uploaded" })
-      .then(check);
-    const uploads = images.map(async (blob, i) => {
-      const { error } = await this.db.storage.from(BUCKET).upload(paths[i], blob, { contentType: blob.type || "image/jpeg", upsert: true });
-      if (error) throw new AppError("upload_failed", error.message);
-    });
-    try {
-      await Promise.all([insert, ...uploads]);
-    } catch (err) {
-      // Halbfertigen Scan samt bereits hochgeladener Fotos nicht liegen lassen.
-      void this.db.storage.from(BUCKET).remove(paths).then(() => this.db.from("scans").delete().eq("id", scanId));
-      throw err;
-    }
-    return scanId;
+    const path = `${userId}/${scanId}/${crypto.randomUUID().slice(0, 8)}.jpg`;
+    const { error } = await this.db.storage.from(BUCKET).upload(path, image, { contentType: image.type || "image/jpeg", upsert: true });
+    if (error) throw new AppError("upload_failed", error.message);
+    return path;
+  }
+
+  async createScan(type: Scan["scan_type"], scanId: string, imagePaths: string[]) {
+    const userId = await currentUserId();
+    check(
+      await this.db
+        .from("scans")
+        .insert({ id: scanId, user_id: userId, scan_type: type, image_paths: imagePaths, image_path: imagePaths[0], status: "uploaded" }),
+    );
+  }
+
+  async removeScanImages(paths: string[]) {
+    if (paths.length) await this.db.storage.from(BUCKET).remove(paths);
   }
 
   async getScan(scanId: string): Promise<ScanWithItems | null> {

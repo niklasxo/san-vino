@@ -99,16 +99,19 @@ export class DemoRepository implements VinoRepository {
     store.profile = { ...store.profile, answers: {}, taste: null, tasteType: null, onboardingCompleted: false };
   }
 
-  async createScanWithImages(type: ScanType, images: Blob[]): Promise<string> {
-    const scanId = id();
-    const paths = images.map((blob, i) => {
-      const path = `${store.userId}/${scanId}/${i}.jpg`;
-      store.images.set(path, URL.createObjectURL(blob));
-      return path;
-    });
-    const scan: Scan = { id: scanId, scan_type: type, status: "uploaded", image_paths: paths, analysis_meta: null, error_code: null, created_at: now(), analyzed_at: null };
+  async uploadScanImage(scanId: string, image: Blob): Promise<string> {
+    const path = `${store.userId}/${scanId}/${id().slice(0, 8)}.jpg`;
+    store.images.set(path, URL.createObjectURL(image));
+    return path;
+  }
+
+  async createScan(type: ScanType, scanId: string, imagePaths: string[]) {
+    const scan: Scan = { id: scanId, scan_type: type, status: "uploaded", image_paths: imagePaths, analysis_meta: null, error_code: null, created_at: now(), analyzed_at: null };
     store.scans.set(scanId, scan);
-    return scanId;
+  }
+
+  async removeScanImages(paths: string[]) {
+    paths.forEach((p) => store.images.delete(p));
   }
 
   async getScan(scanId: string) {
@@ -308,7 +311,7 @@ function persistAfter<T extends object>(proto: T, methods: (keyof T)[]) {
   }
 }
 persistAfter(DemoRepository.prototype, [
-  "saveOnboarding", "updateLearnedProfile", "resetTasteProfile", "createScanWithImages", "updateScanItem",
+  "saveOnboarding", "updateLearnedProfile", "resetTasteProfile", "uploadScanImage", "createScan", "removeScanImages", "updateScanItem",
   "deleteScan", "saveWine", "updateSavedWine", "removeSavedWine", "upsertRating", "deleteRating", "deleteAllData",
 ]);
 persistAfter(DemoAiService.prototype, ["analyzeScan", "explainScanItem", "reestimateScanItem"]);

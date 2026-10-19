@@ -34,6 +34,11 @@ export default function ScanPage() {
 
   React.useEffect(() => () => images.forEach((i) => URL.revokeObjectURL(i.previewUrl)), []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Fotos schon während der Vorschau hochladen → nach „Analysieren“ startet sofort die KI.
+  const { preload, discard } = flow;
+  React.useEffect(() => preload(images.map((i) => i.blob)), [images, preload]);
+  React.useEffect(() => discard, [discard]);
+
   const openCamera = (t: ScanType) => {
     setType(t);
     cameraInput.current?.click();
@@ -73,6 +78,7 @@ export default function ScanPage() {
 
   const startOver = () => {
     images.forEach((i) => URL.revokeObjectURL(i.previewUrl));
+    flow.discard();
     setImages([]);
     setEmptyResult(null);
     flow.reset();
