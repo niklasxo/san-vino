@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { keys } from "@/hooks/queries";
 import { repository } from "@/services";
 import { formatPrice } from "@/lib/utils";
+import { warmUpFunction } from "@/lib/supabase/warm-up";
 import { priceLabel } from "@/components/wine/price";
 import type { ScanItem } from "@/types/domain";
 
@@ -37,6 +38,8 @@ export default function ScanResultPage() {
   const [maxPrice, setMaxPrice] = React.useState<number | null>(null);
 
   const ranked = React.useMemo(() => (scanQuery.data && profile ? rankItems(scanQuery.data.items, profile) : []), [scanQuery.data, profile]);
+
+  React.useEffect(() => warmUpFunction("generate-wine-explanation"), []);
 
   // Erklärung zum besten Treffer schon vorladen – meist wird genau der angetippt.
   const top = ranked[0];

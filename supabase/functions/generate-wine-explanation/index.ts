@@ -81,7 +81,8 @@ serve(async (req) => {
       maxOutputTokens: 2_000,
       deadlineMs: 45_000,
       attemptTimeoutMs: 25_000,
-      hedgeAfterMs: 8_000,
+      // Flash formuliert schöner, hängt aber bei Überlast – nach 2,5 s rechnet Flash-Lite parallel mit (~1 s).
+      hedgeAfterMs: 2_500,
     });
   } catch (err) {
     await recordUsage(db, { userId: user.id, fn: "generate-wine-explanation", model, success: false });

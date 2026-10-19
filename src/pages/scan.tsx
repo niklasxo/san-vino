@@ -10,6 +10,7 @@ import { Segmented } from "@/components/ui/chip";
 import { useScanWorkflow } from "@/hooks/use-scan-workflow";
 import { describeError } from "@/lib/errors";
 import { ACCEPTED_TYPES, ImageError, type PreparedImage, prepareImage } from "@/lib/image/prepare";
+import { warmUpFunction } from "@/lib/supabase/warm-up";
 import { cn } from "@/lib/utils";
 import type { ScanType } from "@/types/domain";
 
@@ -37,6 +38,12 @@ export default function ScanPage() {
   // Fotos schon während der Vorschau hochladen → nach „Analysieren“ startet sofort die KI.
   const { preload, discard } = flow;
   React.useEffect(() => preload(images.map((i) => i.blob)), [images, preload]);
+  // Analyse-Function schon beim Öffnen und bei jedem neuen Foto aufwecken (Kaltstart vermeiden).
+  React.useEffect(() => warmUpFunction("analyze-wine-image"), [images]);
+  // Während die Analyse läuft, schon die Erklärungs-Function wecken – die wird direkt danach gebraucht.
+  React.useEffect(() => {
+    if (flow.phase === "analyzing") warmUpFunction("generate-wine-explanation");
+  }, [flow.phase]);
   React.useEffect(() => discard, [discard]);
 
   const openCamera = (t: ScanType) => {
