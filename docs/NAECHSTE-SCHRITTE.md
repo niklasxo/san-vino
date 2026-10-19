@@ -39,8 +39,11 @@
 - Vercel-MCP: Projekt sichtbar, Details/Deployments → 403 (Scope `niklasxo`). Build-Status über GitHub-Commit-Status prüfen.
 
 ## Stand 19.10.
-- [x] `other_details` aus dem KI-Ausgabeschema entfernt (Code auf `main`). **Noch nicht deployt:** live ist weiter
-      `analyze-wine-image` v5 – beim nächsten Function-Deploy automatisch dabei (abwärtskompatibel, Zod-Default `[]`).
+- [x] `other_details` aus dem KI-Ausgabeschema entfernt.
+- [x] Überlast-Schutz: Gemini meldete 503 „high demand“ und hing 60–115 s → jetzt startet parallel das Ausweichmodell
+      `gemini-flash-lite-latest` (nach 30 s Karte / 15 s Flasche / 12 s Erklärung oder sofort bei 503).
+      Abschalten: Secret `GEMINI_FALLBACK_MODEL=none`. Deployt: `analyze-wine-image` v6, `generate-wine-explanation` v5
+      (per Vergleich mit dem Repo geprüft).
 - [x] Erklärung zum besten Treffer wird auf der Ergebnisseite im Hintergrund vorgeladen.
 - [x] PWA-Vorabcache von 2,45 MB auf 1,36 MB verkleinert (große Icons nicht mehr vorab laden).
 
