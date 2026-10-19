@@ -67,6 +67,11 @@ export function useScan(scanId: string | undefined) {
   return useQuery({ queryKey: keys.scan(scanId ?? ""), queryFn: () => repository.getScan(scanId!), enabled: Boolean(scanId) });
 }
 
+/** Lädt die Erklärung im Hintergrund vor, damit die Detailseite sofort fertig ist. */
+export function prefetchExplanation(qc: ReturnType<typeof useQueryClient>, itemId: string, version: number | undefined) {
+  return qc.prefetchQuery({ queryKey: keys.explanation(itemId, version), queryFn: () => ai.explainScanItem(itemId), staleTime: Infinity });
+}
+
 export function useExplanation(itemId: string | undefined, version: number | undefined, enabled: boolean) {
   return useQuery({
     queryKey: keys.explanation(itemId ?? "", version),

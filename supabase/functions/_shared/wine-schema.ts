@@ -64,7 +64,8 @@ export const extractedWineSchema = z.object({
   currency: nullableText,
   price_unit: z.enum(["glass", "bottle", "carafe", "unknown"]).nullable(),
   price_assignment: z.enum(["clear", "uncertain", "none"]),
-  other_details: z.array(z.string().max(120)).max(10),
+  // Nicht mehr im KI-Schema (spart Ausgabe-Tokens); bleibt für ältere Datensätze lesbar.
+  other_details: z.array(z.string().max(120)).max(10).default([]),
   identification_confidence: z.number().min(0).max(1),
   evidence: z.object({
     name: evidenceKind,
@@ -122,7 +123,7 @@ const wineJson = {
   required: [
     "name", "producer", "vintage", "country", "region", "grape_varieties", "wine_type",
     "alcohol_percent", "menu_section", "price", "currency", "price_unit", "price_assignment",
-    "other_details", "identification_confidence", "evidence", "taste_properties",
+    "identification_confidence", "evidence", "taste_properties",
     "typical_notes", "fruit_note_keys",
   ],
   properties: {
@@ -139,7 +140,6 @@ const wineJson = {
     currency: { type: ["string", "null"], description: "ISO-4217, z. B. EUR" },
     price_unit: { type: ["string", "null"], enum: ["glass", "bottle", "carafe", "unknown", null] },
     price_assignment: { type: "string", enum: ["clear", "uncertain", "none"] },
-    other_details: { type: "array", items: str },
     identification_confidence: { type: "number", description: "0-1: wie sicher ist die Identifikation des konkreten Weins" },
     evidence: {
       type: "object",

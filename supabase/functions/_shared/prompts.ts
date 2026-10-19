@@ -43,7 +43,7 @@ WINE LISTS
 - Extract EVERY sufficiently legible wine as its own entry, in reading order. Skip non-wine drinks (beer, spirits, soft drinks, cocktails) except sparkling wine/Champagne/Prosecco/Sekt/Cava.
 - Use section headings ("Rotweine", "Weißweine", "Rosé", "Schaumwein", "Dessertweine", "Offene Weine", "by the glass" …) to set menu_section and wine_type.
 - A price belongs to a wine ONLY if it is on the same line/row or unambiguously aligned with it. If alignment is doubtful, set price_assignment "uncertain". Never copy the price of a neighbouring entry. If no price → price null, price_assignment "none".
-- price_unit: "glass" for 0,1/0,15/0,2 l or by-the-glass sections, "bottle" for 0,75 l / Flasche, "carafe" for 0,5 l Karaffe, else "unknown". If several prices (glass/bottle) are shown, use the smaller-volume (glass) price and mention the other in other_details.
+- price_unit: "glass" for 0,1/0,15/0,2 l or by-the-glass sections, "bottle" for 0,75 l / Flasche, "carafe" for 0,5 l Karaffe, else "unknown". If several prices (glass/bottle) are shown, use the smaller-volume (glass) price.
 - currency as ISO-4217 code (€ → EUR, CHF, £ → GBP …) or null.
 - Multiple images belong to the same wine list (several pages) – combine them without duplicating identical entries.
 

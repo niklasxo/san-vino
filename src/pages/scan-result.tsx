@@ -9,7 +9,7 @@ import { Segmented } from "@/components/ui/chip";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FavoriteCard, WineListCard } from "@/components/wine/wine-card";
-import { useScan, useTasteProfile } from "@/hooks/queries";
+import { prefetchExplanation, useScan, useTasteProfile } from "@/hooks/queries";
 import { rankItems, shortReason } from "@/lib/matching";
 import { useQueryClient } from "@tanstack/react-query";
 import { keys } from "@/hooks/queries";
@@ -32,11 +32,20 @@ export default function ScanResultPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const scanQuery = useScan(scanId);
-  const { profile } = useTasteProfile();
+  const { profile, version } = useTasteProfile();
   const [typeFilter, setTypeFilter] = React.useState<TypeFilter>("all");
   const [maxPrice, setMaxPrice] = React.useState<number | null>(null);
 
   const ranked = React.useMemo(() => (scanQuery.data && profile ? rankItems(scanQuery.data.items, profile) : []), [scanQuery.data, profile]);
+
+  // Erklärung zum besten Treffer schon vorladen – meist wird genau der angetippt.
+  const top = ranked[0];
+  React.useEffect(() => {
+    if (!top || top.match.confidence === "insufficient") return;
+    const cached = top.item.explanation;
+    if (cached && cached.profile_version === version && cached.score === top.match.score) return;
+    void prefetchExplanation(qc, top.item.id, version);
+  }, [top, version, qc]);
 
   const deleteScan = async () => {
     await repository.deleteScan(scanId!);
