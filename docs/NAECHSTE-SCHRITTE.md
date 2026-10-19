@@ -50,7 +50,14 @@
 - [x] Erklärung zum besten Treffer wird auf der Ergebnisseite im Hintergrund vorgeladen.
 - [x] PWA-Vorabcache von 2,45 MB auf 1,36 MB verkleinert (große Icons nicht mehr vorab laden).
 
+- [x] Weinkarte schneller (`analyze-wine-image` v8, per Vergleich mit dem Repo geprüft):
+      kompaktes KI-Format (`_shared/compact-analysis.ts`, ~3,3× weniger Ausgabe), Server parallel
+      (Bilder, Profil, Katalog, Nutzungsprotokoll), gespeicherte Zeilen direkt zurück.
+      App: Fotos werden schon in der Vorschau hochgeladen; Scan-ID im Browser; „Letzte Scans“ lädt im Hintergrund.
+      **Noch zu messen** (nächster echter Scan → Logs `gemini ok … out=`).
+
 ## Nächste Tempo-Ideen (nicht umgesetzt)
+0. Streaming: Weine erscheinen nacheinander, sobald die KI sie gelesen hat (größter gefühlter Gewinn).
 1. `evidence` kompakter → weniger Ausgabe-Tokens (Ausgabe dominiert die Dauer).
 2. Bildanalyse streamen (`streamGenerateContent`) und Weine nacheinander anzeigen.
 3. Erklärung schon im Hintergrund vorladen, sobald das Ergebnis da ist.
