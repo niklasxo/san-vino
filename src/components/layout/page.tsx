@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 export function Page({ children, className, withNav = true }: { children: React.ReactNode; className?: string; withNav?: boolean }) {
   return (
     <motion.main
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      // Kein Ausblenden auf 0 – sonst blitzt bei jedem Seitenwechsel kurz ein leerer Bildschirm auf.
+      initial={{ y: 8 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className={cn("mx-auto w-full max-w-xl px-5 pt-safe", withNav ? "pb-[calc(96px+env(safe-area-inset-bottom))]" : "pb-[calc(32px+env(safe-area-inset-bottom))]", className)}
     >
       {children}

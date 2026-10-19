@@ -122,13 +122,13 @@ export default function ScanPage() {
         tabIndex={-1}
       />
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout" initial={false}>
         {busy ? (
-          <motion.div key="busy" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div key="busy" initial={{ opacity: 0.4 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.12 } }}>
             <AnalyzingView previews={images.map((i) => i.previewUrl)} phase={flow.phase} slow={flow.slow} isMenu={type === "menu"} />
           </motion.div>
         ) : images.length === 0 ? (
-          <motion.div key="choose" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+          <motion.div key="choose" initial={{ opacity: 0.4, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, transition: { duration: 0.12 } }}>
             <PageHeading eyebrow="Scannen" title="Was möchtest du fotografieren?" subtitle="Wir lesen den Wein und sagen dir, wie gut er zu deinem Geschmack passt." />
             <div className="space-y-3">
               <ScanOption
@@ -150,7 +150,7 @@ export default function ScanPage() {
             <Tips />
           </motion.div>
         ) : (
-          <motion.div key="preview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+          <motion.div key="preview" initial={{ opacity: 0.4, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, transition: { duration: 0.12 } }}>
             <PageHeading
               eyebrow={type === "menu" ? "Weinkarte" : "Flasche"}
               title={emptyResult ? emptyTitle(emptyResult.status) : "Sieht gut aus?"}

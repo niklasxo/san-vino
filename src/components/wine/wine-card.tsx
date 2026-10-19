@@ -12,7 +12,7 @@ import { priceLabel } from "./price";
 import { wineSubtitle, wineTitle } from "./wine-meta";
 
 const appear = (i: number) => ({
-  initial: { opacity: 0, y: 14 },
+  initial: { opacity: 0.4, y: 10 },
   animate: { opacity: 1, y: 0 },
   transition: { delay: 0.08 + i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
 });
@@ -85,7 +85,7 @@ export function FavoriteCard({ wine, match, to, reason }: { wine: ExtractedWine;
   const price = priceLabel(wine);
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18, scale: 0.98 }}
+      initial={{ opacity: 0.4, y: 12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       className="grain relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-burgundy to-burgundy-deep p-6 text-ivory shadow-[var(--shadow-glow)]"

@@ -11,7 +11,7 @@ import { WineFacts, wineTitle } from "./wine-meta";
 import { WineTasteBars } from "./wine-taste-bars";
 
 const section = (i: number) => ({
-  initial: { opacity: 0, y: 14 },
+  initial: { opacity: 0.4, y: 10 },
   animate: { opacity: 1, y: 0 },
   transition: { delay: 0.15 + i * 0.08, duration: 0.55, ease: [0.22, 1, 0.36, 1] as const },
 });

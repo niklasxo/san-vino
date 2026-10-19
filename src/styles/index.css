@@ -49,6 +49,7 @@
 
 @layer base {
   html {
+    background-color: var(--color-ivory);
     -webkit-tap-highlight-color: transparent;
     text-size-adjust: 100%;
   }

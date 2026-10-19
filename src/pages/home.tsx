@@ -18,7 +18,7 @@ import { tipFor } from "@/lib/taste-profile/tips";
 import { formatRelativeDate } from "@/lib/utils";
 
 const rise = (i: number) => ({
-  initial: { opacity: 0, y: 14 },
+  initial: { opacity: 0.4, y: 10 },
   animate: { opacity: 1, y: 0 },
   transition: { delay: 0.05 + i * 0.07, duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
 });

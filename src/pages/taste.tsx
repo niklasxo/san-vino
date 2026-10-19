@@ -40,7 +40,7 @@ export default function TastePage() {
         <p className="mt-5 text-[15px] leading-relaxed text-ivory/90">{describeProfile(profile)}</p>
       </TasteTypeCard>
 
-      <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mt-6 grid grid-cols-2 gap-3">
+      <motion.section initial={{ opacity: 0.4, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-6 grid grid-cols-2 gap-3">
         <div className="rounded-[1.5rem] bg-cream/80 p-4">
           <p className="font-serif text-[30px] leading-none text-charcoal tabular-nums">{ratedCount}</p>
           <p className="mt-1.5 text-[13px] text-taupe">{ratedCount === 1 ? "bewerteter Wein" : "bewertete Weine"}</p>
