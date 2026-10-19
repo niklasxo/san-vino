@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
+import * as React from "react";
 import type { ScanPhase } from "@/hooks/use-scan-workflow";
 
 const TEXT: Partial<Record<ScanPhase, string>> = {
@@ -7,6 +8,41 @@ const TEXT: Partial<Record<ScanPhase, string>> = {
   matching: "Wir vergleichen ihn mit deinem Geschmack …",
   done: "Wir vergleichen ihn mit deinem Geschmack …",
 };
+
+/** Erwartete Dauer bis zum Ergebnis – der Countdown zeigt sie als Zahl im Kreis. */
+export const SCAN_TARGET_SECONDS = 15;
+
+function Countdown({ seconds }: { seconds: number }) {
+  const [left, setLeft] = React.useState(seconds);
+  React.useEffect(() => {
+    const started = Date.now();
+    const id = setInterval(() => setLeft(Math.max(0, seconds - Math.floor((Date.now() - started) / 1000))), 250);
+    return () => clearInterval(id);
+  }, [seconds]);
+  const r = 26;
+  const circumference = 2 * Math.PI * r;
+  return (
+    <div className="relative size-16" aria-label={left > 0 ? `Noch etwa ${left} Sekunden` : "Gleich fertig"}>
+      <svg viewBox="0 0 64 64" className="size-16 -rotate-90">
+        <circle cx="32" cy="32" r={r} fill="none" strokeWidth="5" className="stroke-current text-cream" />
+        <circle
+          cx="32"
+          cy="32"
+          r={r}
+          fill="none"
+          strokeWidth="5"
+          strokeLinecap="round"
+          className="stroke-current text-burgundy transition-[stroke-dashoffset] duration-300 ease-linear"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference * (1 - left / seconds)}
+        />
+      </svg>
+      <span className="absolute inset-0 grid place-items-center font-serif text-[22px] tabular-nums text-charcoal">
+        {left > 0 ? left : "…"}
+      </span>
+    </div>
+  );
+}
 
 export function AnalyzingView({ previews, phase, slow, isMenu }: { previews: string[]; phase: ScanPhase; slow: boolean; isMenu: boolean }) {
   return (
@@ -29,7 +65,10 @@ export function AnalyzingView({ previews, phase, slow, isMenu }: { previews: str
           ))}
         </div>
       </div>
-      <div className="mt-9 h-16">
+      <div className="mt-7">
+        <Countdown seconds={SCAN_TARGET_SECONDS} />
+      </div>
+      <div className="mt-4 h-16">
         <AnimatePresence mode="wait">
           <motion.p
             key={phase}
@@ -43,7 +82,7 @@ export function AnalyzingView({ previews, phase, slow, isMenu }: { previews: str
         </AnimatePresence>
         {slow && (
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 text-[14px] text-taupe">
-            {isMenu ? "Weinkarten sind viel Text – das dauert manchmal einen Moment." : "Das dauert gerade etwas länger als sonst …"}
+            {isMenu ? "Weinkarten sind viel Text – gleich geschafft." : "Das dauert gerade etwas länger als sonst …"}
           </motion.p>
         )}
       </div>

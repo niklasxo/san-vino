@@ -20,7 +20,7 @@ export function useScanWorkflow() {
 
   React.useEffect(() => {
     if (phase !== "analyzing") return setSlow(false);
-    const t = window.setTimeout(() => setSlow(true), 20_000);
+    const t = window.setTimeout(() => setSlow(true), 15_000);
     return () => window.clearTimeout(t);
   }, [phase]);
 

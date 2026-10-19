@@ -125,3 +125,18 @@ Deno.test("GEMINI_FALLBACK_MODEL=none → nur das Hauptmodell", async () => {
   Deno.env.delete("GEMINI_FALLBACK_MODEL");
   assert(urls.length === 1 && !urls[0].includes("lite"), "kein Ausweichmodell");
 });
+
+Deno.test("Flash-Lite als Hauptmodell → Flash läuft bei hedgeAfterMs 0 sofort parallel mit", async () => {
+  const urls: string[] = [];
+  globalThis.fetch = ((url: string) => {
+    urls.push(url);
+    return new Promise((resolve) =>
+      setTimeout(() => resolve(new Response(JSON.stringify(okBody('{"ok":1}')), { status: 200 })), url.includes("lite") ? 50 : 200)
+    );
+  }) as typeof fetch;
+  const res = await callGemini({ ...req, model: "gemini-flash-lite-latest", hedgeAfterMs: 0 });
+  assert((res.data as any).ok === 1, "Antwort");
+  assert(urls.length === 2, "beide Modelle gefragt");
+  assert(urls.some((u) => u.includes("/gemini-flash-latest:")), "Flash als Ausweichmodell");
+  await sleep(250);
+});

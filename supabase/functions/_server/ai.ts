@@ -27,9 +27,11 @@ export function aiModel(task: "vision" | "text"): string {
     const base = Deno.env.get("OPENAI_MODEL") || "gpt-5-mini";
     return task === "text" ? Deno.env.get("OPENAI_EXPLANATION_MODEL") || base : base;
   }
-  // "gemini-flash-latest" zeigt immer auf das aktuelle Flash-Modell (im kostenlosen Tarif enthalten).
-  const base = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
-  return task === "text" ? Deno.env.get("GEMINI_TEXT_MODEL") || base : base;
+  // "-latest" zeigt immer auf das aktuelle Modell (im kostenlosen Tarif enthalten).
+  // Fotos: Flash-Lite liest Karten schnell genug (~12 s für 14 Weine), Flash läuft parallel als Absicherung.
+  // Texte: Flash formuliert besser; die Erklärung wird ohnehin im Hintergrund vorgeladen.
+  if (task === "vision") return Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest";
+  return Deno.env.get("GEMINI_TEXT_MODEL") || "gemini-flash-latest";
 }
 
 export function callStructured(req: StructuredRequest): Promise<StructuredResponse> {

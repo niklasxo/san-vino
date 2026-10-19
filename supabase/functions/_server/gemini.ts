@@ -21,20 +21,21 @@ function toParts(content: StructuredRequest["userContent"]) {
  * Gemini-Modelle sind im kostenlosen Tarif zeitweise überlastet (HTTP 503 / hängende Anfragen).
  * Deshalb: Antwortet das Hauptmodell nicht rechtzeitig oder meldet es eine Störung, läuft parallel
  * dieselbe Anfrage an ein Ausweichmodell (eigene Kapazität) – die schnellere gültige Antwort gewinnt.
- * GEMINI_FALLBACK_MODEL=none schaltet das ab.
+ * Ausweichmodell: jeweils das andere aus Flash / Flash-Lite. GEMINI_FALLBACK_MODEL=none schaltet das ab.
  */
 export async function callGemini(req: StructuredRequest): Promise<StructuredResponse> {
   const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) throw new HttpError(503, "not_configured", "GEMINI_API_KEY fehlt");
 
-  const fallback = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-lite-latest";
+  const fallback = Deno.env.get("GEMINI_FALLBACK_MODEL") ||
+    (req.model.includes("lite") ? "gemini-flash-latest" : "gemini-flash-lite-latest");
   if (fallback === "none" || fallback === req.model) return runModel(req, req.model, apiKey);
 
   const started = Date.now();
   const stop = new AbortController();
   let startHedge: () => void = () => {};
   const hedgeSignal = new Promise<void>((resolve) => (startHedge = resolve));
-  const hedgeTimer = setTimeout(startHedge, req.hedgeAfterMs ?? req.attemptTimeoutMs / 2);
+  const hedgeTimer = setTimeout(startHedge, Math.max(0, req.hedgeAfterMs ?? req.attemptTimeoutMs / 2));
 
   const primary = runModel(req, req.model, apiKey, stop.signal, startHedge).catch((err) => {
     startHedge();

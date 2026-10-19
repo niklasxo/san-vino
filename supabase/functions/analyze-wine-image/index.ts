@@ -109,8 +109,8 @@ serve(async (req) => {
         // Muss sicher unter dem Laufzeitlimit der Function (~150 s) bleiben.
         deadlineMs: 115_000,
         attemptTimeoutMs: isMenu ? 100_000 : 60_000,
-        // Normal: Karte ~20 s, Flasche ~10 s – deutlich länger heißt meist Überlast beim Hauptmodell.
-        hedgeAfterMs: isMenu ? 30_000 : 15_000,
+        // Ziel: Ergebnis in ≤ 15 s. Karten laufen sofort auf beiden Modellen, Flaschen nach 4 s.
+        hedgeAfterMs: isMenu ? 0 : 4_000,
       });
     } catch (err) {
       await recordUsage(db, { userId: user.id, fn: "analyze-wine-image", model, success: false });
@@ -282,7 +282,7 @@ async function reestimate(db: any, userId: string, itemId: string) {
       maxOutputTokens: 4_000,
       deadlineMs: 60_000,
       attemptTimeoutMs: 40_000,
-      hedgeAfterMs: 15_000,
+      hedgeAfterMs: 8_000,
     });
   } catch (err) {
     await recordUsage(db, { userId, fn: "analyze-wine-image", model, success: false });
