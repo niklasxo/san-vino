@@ -12,6 +12,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       injectRegister: "auto",
       includeAssets: ["favicon.svg", "icons/apple-touch-icon.png", "icons/app-icon.svg"],
+      // Große Manifest-Icons nicht vorab laden – sie bremsen sonst den ersten Besuch (Upload!) auf dem Handy.
+      includeManifestIcons: false,
       manifest: {
         name: "SAN VINO – Dein Wein-Sommelier",
         short_name: "San Vino",
@@ -32,6 +34,7 @@ export default defineConfig({
       workbox: {
         // Nur die App-Hülle wird gecacht. Supabase- und KI-Anfragen laufen immer über das Netzwerk.
         globPatterns: ["**/*.{js,css,html,svg,png}", "**/*latin-wght-normal*.woff2", "**/*latin-ext-wght-normal*.woff2"],
+        globIgnores: ["**/icons/icon-1024.png", "**/icons/icon-512.png", "**/icons/icon-maskable-512.png"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/functions\//, /^\/auth\//, /^\/rest\//, /^\/storage\//],
         runtimeCaching: [],

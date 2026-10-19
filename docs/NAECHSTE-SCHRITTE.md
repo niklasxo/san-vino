@@ -38,8 +38,14 @@
 - Deployt: `analyze-wine-image` v5, `generate-wine-explanation` v4 (beide mit wenig Nachdenken), `delete-my-data` v1
 - Vercel-MCP: Projekt sichtbar, Details/Deployments → 403 (Scope `niklasxo`). Build-Status über GitHub-Commit-Status prüfen.
 
+## Stand 19.10.
+- [x] `other_details` aus dem KI-Ausgabeschema entfernt (Code auf `main`). **Noch nicht deployt:** live ist weiter
+      `analyze-wine-image` v5 – beim nächsten Function-Deploy automatisch dabei (abwärtskompatibel, Zod-Default `[]`).
+- [x] Erklärung zum besten Treffer wird auf der Ergebnisseite im Hintergrund vorgeladen.
+- [x] PWA-Vorabcache von 2,45 MB auf 1,36 MB verkleinert (große Icons nicht mehr vorab laden).
+
 ## Nächste Tempo-Ideen (nicht umgesetzt)
-1. KI-Antwort verschlanken: `other_details` streichen, `evidence` kompakter → weniger Ausgabe-Tokens (Ausgabe dominiert die Dauer).
+1. `evidence` kompakter → weniger Ausgabe-Tokens (Ausgabe dominiert die Dauer).
 2. Bildanalyse streamen (`streamGenerateContent`) und Weine nacheinander anzeigen.
 3. Erklärung schon im Hintergrund vorladen, sobald das Ergebnis da ist.
 4. Für reine Flaschen-Scans ggf. `gemini-flash-lite-latest` testen (Secret `GEMINI_MODEL`).
