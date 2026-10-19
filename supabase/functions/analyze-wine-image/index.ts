@@ -125,7 +125,7 @@ serve(async (req) => {
       await recordUsage(db, { userId: user.id, fn: "analyze-wine-image", model, success: false });
       throw err;
     }
-    await recordUsage(db, {
+    const usageLogged = recordUsage(db, {
       userId: user.id,
       fn: "analyze-wine-image",
       model: ai.model,
@@ -146,6 +146,7 @@ serve(async (req) => {
       profilePromise,
       Promise.all(wines.map((wine) => linkCatalogWine(db, wine))),
       markAnalyzing,
+      usageLogged,
     ]);
     const profile = tp ? userTasteProfileSchema.safeParse(tp.learned_profile) : null;
 
