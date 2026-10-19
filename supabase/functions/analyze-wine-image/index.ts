@@ -14,11 +14,11 @@
 import { z } from "zod";
 import { computeMatch } from "../_shared/matching.ts";
 import { userTasteProfileSchema } from "../_shared/profile-schema.ts";
-import { ANALYSIS_SYSTEM_PROMPT, analysisUserText, REESTIMATE_SYSTEM_PROMPT } from "../_shared/prompts.ts";
+import { ANALYSIS_COMPACT_FORMAT, ANALYSIS_SYSTEM_PROMPT, analysisUserText, REESTIMATE_SYSTEM_PROMPT } from "../_shared/prompts.ts";
+import { compactAnalysisJsonSchema, expandCompactAnalysis } from "../_shared/compact-analysis.ts";
 import {
   type ExtractedWine,
   extractedWineSchema,
-  imageAnalysisJsonSchema,
   imageAnalysisSchema,
   reestimateJsonSchema,
   reestimateSchema,
@@ -33,6 +33,7 @@ const MAX_IMAGES = 6;
 const CATALOG_MIN_CONFIDENCE = 0.85;
 // Supabase beendet Functions nach ~150 s – danach gilt eine hängende Analyse als abgebrochen.
 const STALE_ANALYSIS_MS = 160 * 1000;
+const SCAN_RESULT_COLUMNS = "id, scan_type, status, analysis_meta, image_paths, created_at, analyzed_at, error_code";
 
 const bodySchema = z.union([
   z.object({ scan_id: z.uuid() }),
@@ -40,8 +41,8 @@ const bodySchema = z.union([
 ]);
 
 serve(async (req) => {
-  const user = await requireUser(req);
-  const parsed = bodySchema.safeParse(await readJson(req));
+  const [user, body] = await Promise.all([requireUser(req), readJson(req)]);
+  const parsed = bodySchema.safeParse(body);
   if (!parsed.success) throw new HttpError(400, "bad_request");
   const db = serviceClient();
   if ("mode" in parsed.data) return json(req, await reestimate(db, user.id, parsed.data.scan_item_id));
@@ -73,38 +74,46 @@ serve(async (req) => {
 
   await assertWithinDailyLimit(db, user.id, "analyze-wine-image", envInt("VINO_DAILY_SCAN_LIMIT", 25));
 
-  await db
+  // Status setzen und Geschmacksprofil laden laufen parallel zur KI – nichts davon soll warten lassen.
+  // (Supabase-Abfragen starten erst mit then() – deshalb hier sofort anstoßen.)
+  const markAnalyzing = db
     .from("scans")
     .update({ status: "analyzing", error_code: null, analysis_meta: { started_at: new Date().toISOString() } })
     .eq("id", scan.id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .then((r) => r);
+  const profilePromise = db
+    .from("taste_profiles")
+    .select("learned_profile, profile_version")
+    .eq("user_id", user.id)
+    .maybeSingle()
+    .then((r) => r);
 
   const model = aiModel("vision");
   try {
     // Bilder sicher lesen (Service-Client, Pfad bereits auf Eigentümer geprüft)
-    const images: string[] = [];
-    for (const path of paths) {
+    const images = await Promise.all(paths.map(async (path) => {
       const { data: blob, error } = await db.storage.from("wine-scans").download(path);
       if (error || !blob) throw new HttpError(400, "image_invalid");
       if (blob.size > MAX_IMAGE_BYTES) throw new HttpError(413, "image_too_large");
       const bytes = new Uint8Array(await blob.arrayBuffer());
       const mime = sniffImageMime(bytes);
       if (!mime) throw new HttpError(400, "image_invalid");
-      images.push(toDataUrl(bytes, mime));
-    }
+      return toDataUrl(bytes, mime);
+    }));
 
     const isMenu = scan.scan_type === "menu";
     let ai;
     try {
       ai = await callStructured({
         model,
-        system: ANALYSIS_SYSTEM_PROMPT,
+        system: `${ANALYSIS_SYSTEM_PROMPT}\n\n${ANALYSIS_COMPACT_FORMAT}`,
         userContent: [
           { type: "input_text", text: analysisUserText(scan.scan_type, images.length) },
           ...images.map((url) => ({ type: "input_image" as const, image_url: url, detail: "high" as const })),
         ],
         schemaName: "wine_image_analysis",
-        schema: imageAnalysisJsonSchema as unknown as Record<string, unknown>,
+        schema: compactAnalysisJsonSchema as unknown as Record<string, unknown>,
         maxOutputTokens: isMenu ? 32_000 : 8_000,
         // Muss sicher unter dem Laufzeitlimit der Function (~150 s) bleiben.
         deadlineMs: 115_000,
@@ -125,7 +134,7 @@ serve(async (req) => {
       success: true,
     });
 
-    const validated = imageAnalysisSchema.safeParse(ai.data);
+    const validated = imageAnalysisSchema.safeParse(expandCompactAnalysis(ai.data));
     if (!validated.success) {
       console.error("[vino] analysis schema mismatch:", validated.error.issues.slice(0, 5).map((i) => i.path.join(".")));
       throw new HttpError(502, "ai_invalid_response");
@@ -133,21 +142,19 @@ serve(async (req) => {
     const analysis = validated.data;
     const wines = analysis.wines.filter((w) => w.name || w.grape_varieties.length > 0 || w.producer);
 
-    // Geschmacksprofil (falls vorhanden) für das Matching laden
-    const { data: tp } = await db
-      .from("taste_profiles")
-      .select("learned_profile, profile_version")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const [{ data: tp }, wineIds] = await Promise.all([
+      profilePromise,
+      Promise.all(wines.map((wine) => linkCatalogWine(db, wine))),
+      markAnalyzing,
+    ]);
     const profile = tp ? userTasteProfileSchema.safeParse(tp.learned_profile) : null;
 
-    const rows = [];
-    for (const [index, wine] of wines.entries()) {
+    const rows = wines.map((wine, index) => {
       const match = profile?.success ? computeMatch(profile.data, wine) : null;
-      rows.push({
+      return {
         scan_id: scan.id,
         user_id: user.id,
-        wine_id: await linkCatalogWine(db, wine),
+        wine_id: wineIds[index],
         position: index,
         extracted_data: wine,
         evidence: wine.evidence,
@@ -156,11 +163,14 @@ serve(async (req) => {
         match_score: match?.score ?? null,
         match_confidence: match?.confidence ?? null,
         match_details: match ? { ...match, profile_version: tp?.profile_version ?? null } : null,
-      });
-    }
+      };
+    });
+    // Gespeicherte Zeilen direkt zurückgeben – spart eine zusätzliche Abfrage.
+    let items: unknown[] = [];
     if (rows.length > 0) {
-      const { error } = await db.from("scan_items").insert(rows);
-      if (error) throw new HttpError(500, "internal", "insert items failed");
+      const { data, error } = await db.from("scan_items").insert(rows).select("*");
+      if (error || !data) throw new HttpError(500, "internal", "insert items failed");
+      items = data.sort((a: { position: number }, b: { position: number }) => a.position - b.position);
     }
 
     const status = analysis.image_quality === "unreadable" && rows.length === 0
@@ -168,7 +178,7 @@ serve(async (req) => {
       : rows.length === 0
       ? "no_wine_found"
       : "analyzed";
-    await db
+    const { data: savedScan, error: scanSaveError } = await db
       .from("scans")
       .update({
         status,
@@ -182,11 +192,15 @@ serve(async (req) => {
         },
       })
       .eq("id", scan.id)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .select(SCAN_RESULT_COLUMNS)
+      .single();
+    if (scanSaveError || !savedScan) throw new HttpError(500, "internal", "scan update failed");
 
-    return json(req, await loadResult(db, user.id, scan.id, false));
+    return json(req, { cached: false, scan: savedScan, items });
   } catch (err) {
     const code = err instanceof HttpError ? err.code : "internal";
+    await markAnalyzing; // sonst könnte „analyzing“ den Fehlerstatus nachträglich überschreiben
     await db.from("scans").update({ status: "failed", error_code: code }).eq("id", scan.id).eq("user_id", user.id);
     throw err;
   }
@@ -196,7 +210,7 @@ serve(async (req) => {
 async function loadResult(db: any, userId: string, scanId: string, cached: boolean) {
   const { data: scan } = await db
     .from("scans")
-    .select("id, scan_type, status, analysis_meta, image_paths, created_at, analyzed_at, error_code")
+    .select(SCAN_RESULT_COLUMNS)
     .eq("id", scanId)
     .eq("user_id", userId)
     .single();

@@ -99,22 +99,16 @@ export class DemoRepository implements VinoRepository {
     store.profile = { ...store.profile, answers: {}, taste: null, tasteType: null, onboardingCompleted: false };
   }
 
-  async createScan(type: ScanType): Promise<Scan> {
-    const scan: Scan = { id: id(), scan_type: type, status: "pending", image_paths: [], analysis_meta: null, error_code: null, created_at: now(), analyzed_at: null };
-    store.scans.set(scan.id, scan);
-    return { ...scan };
-  }
-
-  async uploadScanImages(scanId: string, images: Blob[]) {
-    const scan = store.scans.get(scanId);
-    if (!scan) throw new AppError("not_found");
+  async createScanWithImages(type: ScanType, images: Blob[]): Promise<string> {
+    const scanId = id();
     const paths = images.map((blob, i) => {
       const path = `${store.userId}/${scanId}/${i}.jpg`;
       store.images.set(path, URL.createObjectURL(blob));
       return path;
     });
-    Object.assign(scan, { image_paths: paths, status: "uploaded" });
-    return paths;
+    const scan: Scan = { id: scanId, scan_type: type, status: "uploaded", image_paths: paths, analysis_meta: null, error_code: null, created_at: now(), analyzed_at: null };
+    store.scans.set(scanId, scan);
+    return scanId;
   }
 
   async getScan(scanId: string) {
@@ -314,7 +308,7 @@ function persistAfter<T extends object>(proto: T, methods: (keyof T)[]) {
   }
 }
 persistAfter(DemoRepository.prototype, [
-  "saveOnboarding", "updateLearnedProfile", "resetTasteProfile", "createScan", "uploadScanImages", "updateScanItem",
+  "saveOnboarding", "updateLearnedProfile", "resetTasteProfile", "createScanWithImages", "updateScanItem",
   "deleteScan", "saveWine", "updateSavedWine", "removeSavedWine", "upsertRating", "deleteRating", "deleteAllData",
 ]);
 persistAfter(DemoAiService.prototype, ["analyzeScan", "explainScanItem", "reestimateScanItem"]);

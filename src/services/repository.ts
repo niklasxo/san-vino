@@ -34,8 +34,8 @@ export interface VinoRepository {
   resetTasteProfile(): Promise<void>;
 
   // Scans
-  createScan(type: ScanType): Promise<Scan>;
-  uploadScanImages(scanId: string, images: Blob[]): Promise<string[]>;
+  /** Legt den Scan an und lädt die Fotos hoch – beides parallel. Liefert die Scan-ID. */
+  createScanWithImages(type: ScanType, images: Blob[]): Promise<string>;
   getScan(scanId: string): Promise<ScanWithItems | null>;
   listRecentScans(limit: number): Promise<(Scan & { item_count: number; top_item: ScanItem | null })[]>;
   updateScanItem(itemId: string, patch: Partial<Pick<ScanItem, "extracted_data" | "price" | "currency" | "match_score" | "match_confidence" | "match_details">>): Promise<ScanItem>;

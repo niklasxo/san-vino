@@ -52,6 +52,21 @@ QUALITY
 - detected_content: what the image actually shows.
 - notes_for_user: one short GERMAN sentence (informal "du") if there is a problem (e.g. "Das Foto ist etwas unscharf – versuch es mit mehr Licht."), else null.`;
 
+/** Kompaktes Ausgabeformat (spart ~75 % der Ausgabe-Tokens → deutlich schnellere Analyse). */
+export const ANALYSIS_COMPACT_FORMAT = `OUTPUT FORMAT – COMPACT JSON (short keys; same rules as above)
+{"q": image_quality, "d": detected_content, "cur": ISO currency of the prices or null, "note": notes_for_user,
+ "w": [ one object per wine:
+  {"n": name, "p": producer, "y": vintage, "c": country, "r": region, "g": [grape varieties], "t": wine_type,
+   "s": menu_section, "pr": price number or null, "u": price_unit "g" glass | "b" bottle | "c" carafe | "u" unknown,
+   "pa": price_assignment "c" clear | "u" uncertain | "n" none, "a": alcohol_percent (only if printed, else omit),
+   "id": identification_confidence,
+   "e": evidence as 7 letters for name,producer,vintage,country,region,grapes,type – each "v" visible | "i" inferred | "u" unknown, e.g. "vvuiiiv",
+   "tp": 8 integers 0-100 (null if unknown) in this order: sweetness,acidity,body,tannins,fruitiness,oak,spice,intensity,
+   "ts": 8 letters for the sources of tp in the same order – "k" knowledge | "s" style_estimate | "u" unknown, e.g. "kkkkksuk",
+   "no": up to 3 short GERMAN aroma notes, "f": fruit_note_keys}
+ ]}
+Be terse: no extra keys, no explanations.`;
+
 export function analysisUserText(scanType: "bottle" | "menu", imageCount: number): string {
   return scanType === "bottle"
     ? "Analyse this photo of a wine bottle / wine label. Return the structured result."

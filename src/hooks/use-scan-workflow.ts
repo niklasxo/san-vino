@@ -31,16 +31,14 @@ export function useScanWorkflow() {
         let scanId = uploaded.current?.signature === signature ? uploaded.current.scanId : null;
         if (!scanId) {
           setPhase("uploading");
-          const scan = await repository.createScan(type);
-          await repository.uploadScanImages(scan.id, images);
-          scanId = scan.id;
+          scanId = await repository.createScanWithImages(type, images);
           uploaded.current = { scanId, signature };
         }
         setPhase("analyzing");
         const result = await ai.analyzeScan(scanId);
         setPhase("matching");
         qc.setQueryData(keys.scan(scanId), { scan: result.scan, items: result.items });
-        await qc.invalidateQueries({ queryKey: keys.recentScans });
+        void qc.invalidateQueries({ queryKey: keys.recentScans }); // im Hintergrund – Ergebnis sofort zeigen
         setPhase("done");
         return result;
       } catch (err) {

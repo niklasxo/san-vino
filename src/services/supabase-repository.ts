@@ -119,22 +119,27 @@ export class SupabaseRepository implements VinoRepository {
     check(await this.db.from("profiles").update({ taste_type: null, onboarding_completed: false }).eq("user_id", userId));
   }
 
-  async createScan(type: Scan["scan_type"]): Promise<Scan> {
+  async createScanWithImages(type: Scan["scan_type"], images: Blob[]): Promise<string> {
     const userId = await currentUserId();
-    return check(await this.db.from("scans").insert({ user_id: userId, scan_type: type }).select(SCAN_COLUMNS).single()) as Scan;
-  }
-
-  async uploadScanImages(scanId: string, images: Blob[]): Promise<string[]> {
-    const userId = await currentUserId();
-    const paths: string[] = [];
-    for (const [i, blob] of images.entries()) {
-      const path = `${userId}/${scanId}/${i}.jpg`;
-      const { error } = await this.db.storage.from(BUCKET).upload(path, blob, { contentType: blob.type || "image/jpeg", upsert: true });
+    // ID im Browser erzeugen → Datensatz und alle Fotos gleichzeitig statt nacheinander (spart mehrere Roundtrips).
+    const scanId = crypto.randomUUID();
+    const paths = images.map((_, i) => `${userId}/${scanId}/${i}.jpg`);
+    const insert = this.db
+      .from("scans")
+      .insert({ id: scanId, user_id: userId, scan_type: type, image_paths: paths, image_path: paths[0], status: "uploaded" })
+      .then(check);
+    const uploads = images.map(async (blob, i) => {
+      const { error } = await this.db.storage.from(BUCKET).upload(paths[i], blob, { contentType: blob.type || "image/jpeg", upsert: true });
       if (error) throw new AppError("upload_failed", error.message);
-      paths.push(path);
+    });
+    try {
+      await Promise.all([insert, ...uploads]);
+    } catch (err) {
+      // Halbfertigen Scan samt bereits hochgeladener Fotos nicht liegen lassen.
+      void this.db.storage.from(BUCKET).remove(paths).then(() => this.db.from("scans").delete().eq("id", scanId));
+      throw err;
     }
-    check(await this.db.from("scans").update({ image_paths: paths, image_path: paths[0], status: "uploaded" }).eq("id", scanId));
-    return paths;
+    return scanId;
   }
 
   async getScan(scanId: string): Promise<ScanWithItems | null> {
