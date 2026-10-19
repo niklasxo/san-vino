@@ -44,6 +44,9 @@
       `gemini-flash-lite-latest` (nach 30 s Karte / 15 s Flasche / 12 s Erklärung oder sofort bei 503).
       Abschalten: Secret `GEMINI_FALLBACK_MODEL=none`. Deployt: `analyze-wine-image` v6, `generate-wine-explanation` v5
       (per Vergleich mit dem Repo geprüft).
+- [x] Ziel ≤ 15 s: Fotos laufen jetzt auf `gemini-flash-lite-latest` (14 Weine in ~12 s), Flash läuft bei Karten
+      sofort parallel, bei Flaschen nach 4 s. Countdown-Kreis (15 s) beim Analysieren. Live: `analyze-wine-image` v7.
+      `generate-wine-explanation` noch v5 (Ausweichmodell nach 12 statt 8 s) – beim nächsten Deploy mitnehmen.
 - [x] Erklärung zum besten Treffer wird auf der Ergebnisseite im Hintergrund vorgeladen.
 - [x] PWA-Vorabcache von 2,45 MB auf 1,36 MB verkleinert (große Icons nicht mehr vorab laden).
 
