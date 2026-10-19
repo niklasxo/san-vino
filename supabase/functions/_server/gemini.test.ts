@@ -2,6 +2,7 @@
 // Aufruf: cd supabase/functions/analyze-wine-image && deno test --allow-env ../_server/gemini.test.ts
 import { callGemini } from "./gemini.ts";
 import { HttpError } from "./http.ts";
+import { sleep } from "./ai-types.ts";
 
 Deno.env.set("GEMINI_API_KEY", "test-key");
 
@@ -76,4 +77,51 @@ Deno.test("Gemini 2.x nutzt Token-Budget statt Stufe", async () => {
   const { thinkingFor } = await import("./gemini.ts");
   assert((thinkingFor("gemini-2.5-flash") as any).thinkingBudget === 0, "budget 0");
   assert((thinkingFor("gemini-flash-latest") as any).thinkingLevel === "low", "level low");
+});
+
+const okBody = (text: string) => ({ candidates: [{ finishReason: "STOP", content: { parts: [{ text }] } }] });
+
+Deno.test("Hauptmodell überlastet (503) → Ausweichmodell liefert sofort", async () => {
+  const urls: string[] = [];
+  globalThis.fetch = ((url: string) => {
+    urls.push(url);
+    const body = url.includes("flash-lite") ? okBody('{"from":"lite"}') : { error: { code: 503 } };
+    return Promise.resolve(new Response(JSON.stringify(body), { status: url.includes("flash-lite") ? 200 : 503 }));
+  }) as typeof fetch;
+  const t = Date.now();
+  const res = await callGemini({ ...req, hedgeAfterMs: 10_000 });
+  assert((res.data as any).from === "lite", "Antwort vom Ausweichmodell");
+  assert(Date.now() - t < 3_000, "ohne auf den Hedge-Timer zu warten");
+  assert(urls.some((u) => u.includes("gemini-flash-lite-latest")), "Ausweichmodell gefragt");
+});
+
+Deno.test("Hauptmodell hängt → nach hedgeAfterMs gewinnt das Ausweichmodell, Hauptanfrage wird abgebrochen", async () => {
+  let primaryAborted = false;
+  globalThis.fetch = ((url: string, init: RequestInit) => {
+    if (url.includes("flash-lite")) return Promise.resolve(new Response(JSON.stringify(okBody('{"x":2}')), { status: 200 }));
+    return new Promise((_, reject) => {
+      init.signal?.addEventListener("abort", () => {
+        primaryAborted = true;
+        reject(new DOMException("aborted", "AbortError"));
+      });
+    });
+  }) as typeof fetch;
+  const t = Date.now();
+  const res = await callGemini({ ...req, hedgeAfterMs: 300 });
+  assert((res.data as any).x === 2, "Ausweichantwort");
+  assert(Date.now() - t < 2_000, "schnell");
+  await sleep(10);
+  assert(primaryAborted, "Hauptanfrage abgebrochen");
+});
+
+Deno.test("GEMINI_FALLBACK_MODEL=none → nur das Hauptmodell", async () => {
+  Deno.env.set("GEMINI_FALLBACK_MODEL", "none");
+  const urls: string[] = [];
+  globalThis.fetch = ((url: string) => {
+    urls.push(url);
+    return Promise.resolve(new Response(JSON.stringify(okBody("{}")), { status: 200 }));
+  }) as typeof fetch;
+  await callGemini(req);
+  Deno.env.delete("GEMINI_FALLBACK_MODEL");
+  assert(urls.length === 1 && !urls[0].includes("lite"), "kein Ausweichmodell");
 });

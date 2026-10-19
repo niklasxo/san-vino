@@ -10,6 +10,8 @@ export interface StructuredRequest {
   /** Gesamtbudget inkl. Wiederholungen. */
   deadlineMs: number;
   attemptTimeoutMs: number;
+  /** Antwortet das Hauptmodell bis dahin nicht, startet parallel das Ausweichmodell (nur Gemini). */
+  hedgeAfterMs?: number;
 }
 
 export interface StructuredResponse {

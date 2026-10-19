@@ -81,6 +81,7 @@ serve(async (req) => {
       maxOutputTokens: 2_000,
       deadlineMs: 45_000,
       attemptTimeoutMs: 25_000,
+      hedgeAfterMs: 12_000,
     });
   } catch (err) {
     await recordUsage(db, { userId: user.id, fn: "generate-wine-explanation", model, success: false });

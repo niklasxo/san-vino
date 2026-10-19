@@ -17,10 +17,70 @@ function toParts(content: StructuredRequest["userContent"]) {
   });
 }
 
+/**
+ * Gemini-Modelle sind im kostenlosen Tarif zeitweise überlastet (HTTP 503 / hängende Anfragen).
+ * Deshalb: Antwortet das Hauptmodell nicht rechtzeitig oder meldet es eine Störung, läuft parallel
+ * dieselbe Anfrage an ein Ausweichmodell (eigene Kapazität) – die schnellere gültige Antwort gewinnt.
+ * GEMINI_FALLBACK_MODEL=none schaltet das ab.
+ */
 export async function callGemini(req: StructuredRequest): Promise<StructuredResponse> {
   const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) throw new HttpError(503, "not_configured", "GEMINI_API_KEY fehlt");
 
+  const fallback = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-lite-latest";
+  if (fallback === "none" || fallback === req.model) return runModel(req, req.model, apiKey);
+
+  const started = Date.now();
+  const stop = new AbortController();
+  let startHedge: () => void = () => {};
+  const hedgeSignal = new Promise<void>((resolve) => (startHedge = resolve));
+  const hedgeTimer = setTimeout(startHedge, req.hedgeAfterMs ?? req.attemptTimeoutMs / 2);
+
+  const primary = runModel(req, req.model, apiKey, stop.signal, startHedge).catch((err) => {
+    startHedge();
+    throw err;
+  });
+  const secondary = hedgeSignal.then(() => {
+    if (stop.signal.aborted) throw new HttpError(504, "ai_unavailable");
+    const left = req.deadlineMs - (Date.now() - started);
+    if (left < 8_000) throw new HttpError(504, "ai_unavailable");
+    console.log(`[vino] gemini fallback ${fallback} startet nach ${Date.now() - started} ms`);
+    return runModel({ ...req, deadlineMs: left }, fallback, apiKey, stop.signal);
+  });
+
+  try {
+    return await firstSuccess(primary, secondary);
+  } finally {
+    clearTimeout(hedgeTimer);
+    startHedge();
+    stop.abort();
+  }
+}
+
+/** Erste erfolgreiche Antwort; eindeutige Fehler (z. B. Sicherheitsblock) beenden sofort. */
+function firstSuccess<T>(a: Promise<T>, b: Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let failures = 0;
+    let firstError: unknown;
+    const fail = (err: unknown, isPrimary: boolean) => {
+      if (err instanceof HttpError && isDefinitive(err)) return reject(err);
+      if (isPrimary || firstError === undefined) firstError = err;
+      if (++failures === 2) reject(firstError);
+    };
+    a.then(resolve, (e) => fail(e, true));
+    b.then(resolve, (e) => fail(e, false));
+  });
+}
+
+const isDefinitive = (err: HttpError) => err.code === "ai_refused" || err.code === "image_invalid" || err.code === "not_configured";
+
+async function runModel(
+  req: StructuredRequest,
+  model: string,
+  apiKey: string,
+  stop?: AbortSignal,
+  onTrouble: () => void = () => {},
+): Promise<StructuredResponse> {
   const contents = [{ role: "user", parts: toParts(req.userContent) }];
   // Ohne Schema-Unterstützung wird das Zielformat im Prompt beschrieben.
   const system = (withSchema: boolean) =>
@@ -30,7 +90,7 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
   const config = (withSchema: boolean, withThinking: boolean) => ({
     responseMimeType: "application/json",
     ...(withSchema ? { responseJsonSchema: req.schema } : {}),
-    ...(withThinking ? { thinkingConfig: thinkingFor(req.model) } : {}),
+    ...(withThinking ? { thinkingConfig: thinkingFor(model) } : {}),
     maxOutputTokens: req.maxOutputTokens,
     temperature: 0.2,
   });
@@ -42,14 +102,15 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
   let withThinking = Deno.env.get("GEMINI_THINKING") !== "default";
   let lastError: unknown;
 
-  while (attempt < 4) {
+  while (attempt < 4 && !stop?.aborted) {
     attempt++;
     const remaining = req.deadlineMs - (Date.now() - started);
     if (remaining < 5_000) break;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), Math.min(req.attemptTimeoutMs, remaining));
+    const signal = stop ? AbortSignal.any([controller.signal, stop]) : controller.signal;
     try {
-      const res = await fetch(`${API}/${encodeURIComponent(req.model)}:generateContent`, {
+      const res = await fetch(`${API}/${encodeURIComponent(model)}:generateContent`, {
         method: "POST",
         headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -57,12 +118,12 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
           contents,
           generationConfig: config(withSchema, withThinking),
         }),
-        signal: controller.signal,
+        signal,
       });
       if (!res.ok) {
         const detail = await res.text().catch(() => "");
         lastError = new Error(`Gemini HTTP ${res.status}: ${detail.slice(0, 300)}`);
-        console.error(`[vino] gemini HTTP ${res.status} attempt=${attempt}:`, detail.slice(0, 200));
+        console.error(`[vino] gemini ${model} HTTP ${res.status} attempt=${attempt}:`, detail.slice(0, 200));
         // 400: zuerst ohne Denk-Einstellung, dann ohne Schema erneut versuchen
         // (die Antwort wird anschließend trotzdem mit Zod streng geprüft).
         if (res.status === 400 && withThinking) {
@@ -73,6 +134,7 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
           withSchema = false;
           continue;
         }
+        onTrouble();
         if (res.status === 429) {
           // Kostenloses Kontingent erschöpft oder zu viele Anfragen pro Minute.
           if (attempt < 3 && req.deadlineMs - (Date.now() - started) > 20_000) {
@@ -89,25 +151,27 @@ export async function callGemini(req: StructuredRequest): Promise<StructuredResp
       }
       const payload = await res.json();
       console.log(
-        `[vino] gemini ok model=${payload.modelVersion ?? req.model} ms=${Date.now() - started} attempt=${attempt}` +
+        `[vino] gemini ok model=${payload.modelVersion ?? model} ms=${Date.now() - started} attempt=${attempt}` +
           ` in=${payload.usageMetadata?.promptTokenCount} out=${payload.usageMetadata?.candidatesTokenCount}` +
           ` thoughts=${payload.usageMetadata?.thoughtsTokenCount ?? 0}`,
       );
       return {
         data: extractJson(payload),
         usage: { input_tokens: payload.usageMetadata?.promptTokenCount, output_tokens: payload.usageMetadata?.candidatesTokenCount },
-        model: payload.modelVersion ?? req.model,
+        model: payload.modelVersion ?? model,
       };
     } catch (err) {
       if (err instanceof HttpError) throw err;
       lastError = err;
-      console.error(`[vino] gemini attempt ${attempt} failed after ${Date.now() - started} ms:`, err instanceof Error ? err.name : String(err));
+      if (stop?.aborted) break;
+      onTrouble();
+      console.error(`[vino] gemini ${model} attempt ${attempt} failed after ${Date.now() - started} ms:`, err instanceof Error ? err.name : String(err));
       if (attempt < 4) await sleep(1_000);
     } finally {
       clearTimeout(timer);
     }
   }
-  console.error("[vino] gemini failed after retries:", lastError instanceof Error ? lastError.message : String(lastError));
+  if (!stop?.aborted) console.error(`[vino] gemini ${model} failed after retries:`, lastError instanceof Error ? lastError.message : String(lastError));
   throw new HttpError(504, "ai_unavailable");
 }
 

@@ -109,6 +109,8 @@ serve(async (req) => {
         // Muss sicher unter dem Laufzeitlimit der Function (~150 s) bleiben.
         deadlineMs: 115_000,
         attemptTimeoutMs: isMenu ? 100_000 : 60_000,
+        // Normal: Karte ~20 s, Flasche ~10 s – deutlich länger heißt meist Überlast beim Hauptmodell.
+        hedgeAfterMs: isMenu ? 30_000 : 15_000,
       });
     } catch (err) {
       await recordUsage(db, { userId: user.id, fn: "analyze-wine-image", model, success: false });
@@ -220,7 +222,7 @@ async function linkCatalogWine(db: any, wine: ExtractedWine): Promise<string | n
     return null;
   }
   const key = [wine.producer, wine.name, wine.vintage ?? "nv"]
-    .map((p) => String(p).toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim())
+    .map((p) => String(p).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim())
     .join("|");
   const { error } = await db.from("wines").upsert(
     {
@@ -280,6 +282,7 @@ async function reestimate(db: any, userId: string, itemId: string) {
       maxOutputTokens: 4_000,
       deadlineMs: 60_000,
       attemptTimeoutMs: 40_000,
+      hedgeAfterMs: 15_000,
     });
   } catch (err) {
     await recordUsage(db, { userId, fn: "analyze-wine-image", model, success: false });
