@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SwipeAnswer, SwipeAnswers } from "@/lib/taste-profile/swipes";
 import { currentUserId } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors";
 import { getSupabase } from "@/lib/supabase/client";
@@ -112,8 +113,27 @@ export class SupabaseRepository implements VinoRepository {
     check(await this.db.from("profiles").update({ taste_type: tasteType }).eq("user_id", userId));
   }
 
+  async listSwipes(): Promise<SwipeAnswers> {
+    const userId = await currentUserId();
+    const rows = (check(await this.db.from("taste_swipes").select("question_key, answer").eq("user_id", userId)) ?? []) as {
+      question_key: string;
+      answer: SwipeAnswer;
+    }[];
+    return Object.fromEntries(rows.map((r) => [r.question_key, r.answer]));
+  }
+
+  async saveSwipe(questionKey: string, answer: SwipeAnswer) {
+    const userId = await currentUserId();
+    check(
+      await this.db
+        .from("taste_swipes")
+        .upsert({ user_id: userId, question_key: questionKey, answer }, { onConflict: "user_id,question_key" }),
+    );
+  }
+
   async resetTasteProfile() {
     const userId = await currentUserId();
+    check(await this.db.from("taste_swipes").delete().eq("user_id", userId));
     check(await this.db.from("taste_answers").delete().eq("user_id", userId));
     check(await this.db.from("taste_profiles").delete().eq("user_id", userId));
     check(await this.db.from("profiles").update({ taste_type: null, onboarding_completed: false }).eq("user_id", userId));

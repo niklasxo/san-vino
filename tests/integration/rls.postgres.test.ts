@@ -164,13 +164,31 @@ d("Row Level Security (Postgres)", () => {
     await expect(as(null, (c) => c.query("select * from public.profiles"), "anon")).rejects.toThrow(/permission denied/);
   });
 
+  it("Geschmacks-Swipes: nur eigene sichtbar, fremde weder lesbar noch schreibbar", async () => {
+    await as(A, (c) => c.query("insert into public.taste_swipes (user_id, question_key, answer) values ($1, 's01_sweets', 'yes')", [A]));
+    const own = await as(A, (c) => c.query("select count(*)::int as n from public.taste_swipes"));
+    const foreign = await as(B, (c) => c.query("select count(*)::int as n from public.taste_swipes"));
+    expect(own.rows[0].n).toBe(1);
+    expect(foreign.rows[0].n).toBe(0);
+    await expect(
+      as(B, (c) => c.query("insert into public.taste_swipes (user_id, question_key, answer) values ($1, 's02_dark_chocolate', 'no')", [A])),
+    ).rejects.toThrow(/row-level security/);
+    const upd = await as(B, (c) => c.query("update public.taste_swipes set answer = 'no' where user_id = $1", [A]));
+    expect(upd.rowCount).toBe(0);
+    await expect(
+      as(A, (c) => c.query("insert into public.taste_swipes (user_id, question_key, answer) values ($1, 's03_x', 'maybe')", [A])),
+    ).rejects.toThrow(/check constraint/);
+  });
+
   it("Löschen des Nutzers entfernt alle persönlichen Daten (Kaskade)", async () => {
     const C = randomUUID();
     await pool.query("insert into auth.users (id) values ($1)", [C]);
     await as(C, (c) => c.query(`insert into public.taste_answers (user_id, question_key, answer) values ($1, 'q1_sweetness', '{"value":"dry"}')`, [C]));
+    await as(C, (c) => c.query("insert into public.taste_swipes (user_id, question_key, answer) values ($1, 's01_sweets', 'yes')", [C]));
     await pool.query("delete from auth.users where id = $1", [C]);
     const left = await pool.query(
-      "select (select count(*) from public.profiles where user_id = $1) + (select count(*) from public.taste_answers where user_id = $1) as n",
+      "select (select count(*) from public.profiles where user_id = $1) + (select count(*) from public.taste_answers where user_id = $1)" +
+        " + (select count(*) from public.taste_swipes where user_id = $1) as n",
       [C],
     );
     expect(Number(left.rows[0].n)).toBe(0);

@@ -59,6 +59,13 @@
       `generate-wine-explanation` während der Analyse (OPTIONS-Anfrage, `src/lib/supabase/warm-up.ts`).
 - [x] Erklärung: Flash-Lite springt nach 2,5 s ein (vorher 12 s) – `generate-wine-explanation` v6.
 
+## Neu 19.10.: „Geschmack verfeinern“ & „Mein Wein“
+- Migration 006 `taste_swipes` (RLS, live eingespielt, RLS-Tests lokal grün).
+- 50 Swipe-Fragen (`src/lib/taste-profile/swipes.ts`): Ja voll, Nein ×0,6 gegenläufig, max. ±15 je Merkmal.
+  Profil = Onboarding → Swipes → Bewertungen (`relearnProfile`). Seite `/geschmack/verfeinern`.
+- „Mein Wein“ (`/geschmack/mein-wein`): 36 typische Weinstile (`src/lib/wine-styles.ts`), gleiches Matching, ohne KI.
+- Fix: Sicherheit eines Merkmals wird durch Lernen/Swipes nie mehr abgesenkt (vorher 1,0 → 0,95).
+
 ## Nächste Tempo-Ideen (nicht umgesetzt)
 0. Streaming: Weine erscheinen nacheinander, sobald die KI sie gelesen hat (größter gefühlter Gewinn).
 1. `evidence` kompakter → weniger Ausgabe-Tokens (Ausgabe dominiert die Dauer).

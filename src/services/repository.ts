@@ -15,6 +15,7 @@ import type {
   WineRating,
   WineSnapshot,
 } from "@/types/domain";
+import type { SwipeAnswer, SwipeAnswers } from "@/lib/taste-profile/swipes";
 
 export interface SaveOnboardingInput {
   answers: TasteAnswers;
@@ -32,6 +33,9 @@ export interface VinoRepository {
   saveOnboarding(input: SaveOnboardingInput): Promise<void>;
   updateLearnedProfile(learned: UserTasteProfile, tasteType: string): Promise<void>;
   resetTasteProfile(): Promise<void>;
+  /** Antworten auf die Swipe-Fragen („Geschmack verfeinern“). */
+  listSwipes(): Promise<SwipeAnswers>;
+  saveSwipe(questionKey: string, answer: SwipeAnswer): Promise<void>;
 
   // Scans
   /** Lädt ein Foto vorab hoch (schon während der Vorschau). Liefert den Speicherpfad. */

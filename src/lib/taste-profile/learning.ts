@@ -188,7 +188,9 @@ export function rebuildLearnedProfile(initial: UserTasteProfile, ratings: Rating
   for (const [k, total] of Object.entries(totals) as [UserPreferenceKey, number][]) {
     const shift = clamp(total, -MAX_TOTAL_SHIFT, MAX_TOTAL_SHIFT);
     next[k] = Math.round(clamp(initial[k] + shift, 0, 100));
-    next.certainty[k] = Math.round(Math.min(0.95, initial.certainty[k] + 0.05 * (contributions[k] ?? 0)) * 100) / 100;
+    // Sicherheit steigt nur – direkt erfragte Werte (bis 1,0) werden nicht abgesenkt.
+    const raised = Math.round(Math.min(0.95, initial.certainty[k] + 0.05 * (contributions[k] ?? 0)) * 100) / 100;
+    next.certainty[k] = Math.max(initial.certainty[k], raised);
   }
 
   // Weinarten, die mehrfach begeistert haben, werden ergänzt – nie entfernt.

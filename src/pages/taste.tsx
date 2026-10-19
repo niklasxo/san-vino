@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, PencilLine, RefreshCcw, Shield, Star, Trash2, Undo2 } from "lucide-react";
+import { ChevronRight, PencilLine, RefreshCcw, Shield, Sparkles, Star, Trash2, Undo2, Wine } from "lucide-react";
 import { motion } from "motion/react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -9,10 +9,11 @@ import { TasteTypeCard } from "@/components/profile/taste-type-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useDeleteAllData, useProfileState, useResetProfile, useSavedWines } from "@/hooks/queries";
+import { useDeleteAllData, useProfileState, useResetProfile, useSavedWines, useSwipes } from "@/hooks/queries";
 import { reloadAtStart } from "@/lib/config";
 import { describeError } from "@/lib/errors";
 import { describeProfile, PREFERABLE_TYPE_LABEL, profileCertainty } from "@/lib/taste-profile/describe";
+import { SWIPE_QUESTIONS } from "@/lib/taste-profile/swipes";
 import { determineTasteType } from "@/lib/taste-profile/taste-type";
 import { isDemo } from "@/services";
 
@@ -23,6 +24,8 @@ export default function TastePage() {
   const saved = useSavedWines();
   const reset = useResetProfile();
   const deleteAll = useDeleteAllData();
+  const swipes = useSwipes();
+  const swipeCount = swipes.data ? Object.keys(swipes.data).length : 0;
   const profile = data!.taste!.learned;
   const type = determineTasteType(profile);
   const certainty = profileCertainty(profile);
@@ -70,6 +73,44 @@ export default function TastePage() {
         {learnedShift && <p className="mt-4 text-[12px] text-taupe">Enthält bereits, was du uns durch deine Bewertungen verraten hast.</p>}
       </section>
 
+      <section className="mt-6 grid gap-3">
+        <Link
+          to="/geschmack/mein-wein"
+          className="group flex items-center gap-4 rounded-[1.75rem] bg-gradient-to-br from-burgundy to-burgundy-deep p-5 text-ivory shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+        >
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-ivory/10 text-gold ring-1 ring-gold/30">
+            <Wine className="size-6" />
+          </span>
+          <span className="flex-1">
+            <span className="block font-serif text-[20px] leading-tight">Welcher Wein passt zu mir?</span>
+            <span className="mt-0.5 block text-[13px] text-ivory/75">Dein Wein – ganz ohne Weinkarte</span>
+          </span>
+          <ChevronRight className="size-5 text-ivory/70 transition group-hover:translate-x-0.5" />
+        </Link>
+        <Link
+          to="/geschmack/verfeinern"
+          className="group flex items-center gap-4 rounded-[1.75rem] border border-gold/40 bg-gold/10 p-5 transition hover:bg-gold/15 active:scale-[0.99]"
+        >
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gold/25 text-burgundy">
+            <Sparkles className="size-6" />
+          </span>
+          <span className="flex-1">
+            <span className="block text-[16px] font-medium text-charcoal">Geschmack verfeinern</span>
+            <span className="mt-0.5 block text-[13px] text-taupe">
+              {swipeCount === 0
+                ? `${SWIPE_QUESTIONS.length} kurze Fragen – einfach wischen`
+                : swipeCount >= SWIPE_QUESTIONS.length
+                  ? "Alle Fragen beantwortet – Antworten ändern"
+                  : `${swipeCount} von ${SWIPE_QUESTIONS.length} beantwortet – weitermachen`}
+            </span>
+            <span className="mt-2 block h-1 overflow-hidden rounded-full bg-cream-deep">
+              <span className="block h-full rounded-full bg-gold" style={{ width: `${(swipeCount / SWIPE_QUESTIONS.length) * 100}%` }} />
+            </span>
+          </span>
+          <ChevronRight className="size-5 text-taupe transition group-hover:translate-x-0.5" />
+        </Link>
+      </section>
+
       <section className="mt-6 overflow-hidden rounded-[1.75rem] border border-line/60 bg-white/60">
         <MenuRow icon={<RefreshCcw />} label="Geschmack neu einstellen" text="Alle zehn Fragen noch einmal von vorn" onClick={() => navigate("/onboarding?modus=neu")} />
         <MenuRow icon={<PencilLine />} label="Meine Antworten bearbeiten" text="Einzelne Antworten anpassen" onClick={() => navigate("/onboarding?modus=bearbeiten")} />
@@ -79,7 +120,7 @@ export default function TastePage() {
           title="Profil wirklich zurücksetzen?"
           description={
             <>
-              <p>Deine zehn Antworten und dein berechnetes Geschmacksprofil werden gelöscht. Danach startest du wieder mit dem Fragebogen.</p>
+              <p>Deine zehn Antworten, deine Swipe-Antworten und dein berechnetes Geschmacksprofil werden gelöscht. Danach startest du wieder mit dem Fragebogen.</p>
               <p>Deine gespeicherten Weine und Bewertungen bleiben erhalten und fließen in dein neues Profil wieder ein.</p>
             </>
           }

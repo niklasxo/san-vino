@@ -33,6 +33,8 @@ export const router = createRouter([
           { path: "/weine/:savedId", lazy: page(() => import("@/pages/saved-wine")) },
           { path: "/geschmack", lazy: page(() => import("@/pages/taste")) },
           { path: "/geschmack/bewertungen", lazy: page(() => import("@/pages/ratings")) },
+          { path: "/geschmack/verfeinern", lazy: page(() => import("@/pages/taste-swipe")) },
+          { path: "/geschmack/mein-wein", lazy: page(() => import("@/pages/my-wine")) },
         ],
       },
       { path: "*", lazy: page(() => import("@/pages/not-found")) },

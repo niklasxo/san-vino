@@ -9,6 +9,7 @@ import { DEMO_BOTTLE_SEQUENCE, DEMO_MENU } from "@/demo/fixtures";
 import { AppError } from "@/lib/errors";
 import { ruleBasedExplanation } from "@/lib/matching/reasons";
 import type { ProfileState, RatingInput, SavedWine, Scan, ScanItem, ScanType, WineRating } from "@/types/domain";
+import type { SwipeAnswer, SwipeAnswers } from "@/lib/taste-profile/swipes";
 import type { AiService } from "./ai-service";
 import type { SaveOnboardingInput, VinoRepository } from "./repository";
 
@@ -23,6 +24,7 @@ class DemoStore {
   images = new Map<string, string>();
   items = new Map<string, ScanItem>();
   saved = new Map<string, SavedWine>();
+  swipes: SwipeAnswers = {};
   bottleScanCount = 0;
 }
 
@@ -40,6 +42,7 @@ function loadStore(): DemoStore {
       s.items = new Map(d.items);
       s.saved = new Map(d.saved);
       s.bottleScanCount = d.bottleScanCount ?? 0;
+      s.swipes = d.swipes ?? {};
     }
   } catch {
     /* frischer Demo-Zustand */
@@ -61,6 +64,7 @@ function persist() {
         items: [...store.items],
         saved: [...store.saved],
         bottleScanCount: store.bottleScanCount,
+        swipes: store.swipes,
       }),
     );
   } catch {
@@ -97,6 +101,15 @@ export class DemoRepository implements VinoRepository {
 
   async resetTasteProfile() {
     store.profile = { ...store.profile, answers: {}, taste: null, tasteType: null, onboardingCompleted: false };
+    store.swipes = {};
+  }
+
+  async listSwipes() {
+    return { ...store.swipes };
+  }
+
+  async saveSwipe(questionKey: string, answer: SwipeAnswer) {
+    store.swipes[questionKey] = answer;
   }
 
   async uploadScanImage(scanId: string, image: Blob): Promise<string> {
@@ -311,7 +324,7 @@ function persistAfter<T extends object>(proto: T, methods: (keyof T)[]) {
   }
 }
 persistAfter(DemoRepository.prototype, [
-  "saveOnboarding", "updateLearnedProfile", "resetTasteProfile", "uploadScanImage", "createScan", "removeScanImages", "updateScanItem",
+  "saveOnboarding", "updateLearnedProfile", "resetTasteProfile", "saveSwipe", "uploadScanImage", "createScan", "removeScanImages", "updateScanItem",
   "deleteScan", "saveWine", "updateSavedWine", "removeSavedWine", "upsertRating", "deleteRating", "deleteAllData",
 ]);
 persistAfter(DemoAiService.prototype, ["analyzeScan", "explainScanItem", "reestimateScanItem"]);

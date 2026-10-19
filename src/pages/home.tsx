@@ -1,4 +1,4 @@
-import { Camera, ChevronRight, Heart, Lightbulb, ScanLine } from "lucide-react";
+import { Camera, ChevronRight, Heart, Lightbulb, ScanLine, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { Link, useNavigate } from "react-router";
 import { Logo } from "@/components/brand/logo";
@@ -66,6 +66,23 @@ export default function HomePage() {
           <ScanLine /> Kamera öffnen
         </Button>
       </motion.section>
+
+      {/* Mein Wein – Empfehlung ohne Karte */}
+      <motion.div {...rise(3)}>
+        <Link
+          to="/geschmack/mein-wein"
+          className="group mt-4 flex items-center gap-4 rounded-[1.75rem] border border-gold/40 bg-gold/10 p-5 transition hover:bg-gold/15 active:scale-[0.99]"
+        >
+          <span className="grid size-11 shrink-0 place-items-center rounded-full bg-gold/25 text-burgundy">
+            <Sparkles className="size-5" />
+          </span>
+          <span className="flex-1">
+            <span className="block text-[16px] font-medium text-charcoal">Welcher Wein passt zu mir?</span>
+            <span className="block text-[13px] text-taupe">Dein Wein – ganz ohne Weinkarte</span>
+          </span>
+          <ChevronRight className="size-5 text-taupe transition group-hover:translate-x-0.5" />
+        </Link>
+      </motion.div>
 
       {/* Geschmack */}
       <motion.section {...rise(3)} className="mt-8">

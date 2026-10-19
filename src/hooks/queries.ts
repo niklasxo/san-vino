@@ -1,10 +1,12 @@
 /** TanStack-Query-Hooks: die einzige Stelle, an der UI auf Daten zugreift. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
 import { toast } from "sonner";
 import { computeMatch } from "@/lib/matching";
 import { describeError } from "@/lib/errors";
 import { ai, repository } from "@/services";
 import { completeOnboarding, relearnProfile } from "@/services/taste-service";
+import type { SwipeAnswer, SwipeAnswers } from "@/lib/taste-profile/swipes";
 import type { RatingInput, SavedWine, TasteAnswers, WineSnapshot } from "@/types/domain";
 
 export const keys = {
@@ -15,6 +17,7 @@ export const keys = {
   scan: (id: string) => ["scan", id] as const,
   recentScans: ["recent-scans"] as const,
   explanation: (itemId: string, version: number | undefined) => ["explanation", itemId, version] as const,
+  swipes: ["taste-swipes"] as const,
 };
 
 export function useProfileState() {
@@ -39,8 +42,51 @@ export function useResetProfile() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => repository.resetTasteProfile(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: keys.profile }),
+    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: keys.profile }), qc.invalidateQueries({ queryKey: keys.swipes })]),
   });
+}
+
+export function useSwipes() {
+  return useQuery({ queryKey: keys.swipes, queryFn: () => repository.listSwipes(), staleTime: Infinity });
+}
+
+/**
+ * Swipe-Runde: jede Antwort wird sofort gespeichert; das Profil wird gebündelt neu berechnet
+ * (alle paar Antworten und beim Verlassen) – erst wenn alle Speicherungen durch sind.
+ */
+export function useSwipeSession() {
+  const qc = useQueryClient();
+  const pending = React.useRef<Promise<unknown>[]>([]);
+  const dirty = React.useRef(0);
+
+  const flush = React.useCallback(async () => {
+    if (dirty.current === 0) return;
+    dirty.current = 0;
+    const waiting = pending.current;
+    pending.current = [];
+    await Promise.allSettled(waiting);
+    await relearnProfile(repository);
+    await qc.invalidateQueries({ queryKey: keys.profile });
+  }, [qc]);
+
+  const answer = React.useCallback(
+    (key: string, value: SwipeAnswer) => {
+      qc.setQueryData<SwipeAnswers>(keys.swipes, (prev) => ({ ...prev, [key]: value }));
+      const save = repository.saveSwipe(key, value).catch((err) => {
+        toast.error(describeError(err).title);
+        void qc.invalidateQueries({ queryKey: keys.swipes });
+      });
+      pending.current.push(save);
+      dirty.current += 1;
+      if (dirty.current >= 5) void flush().catch(() => undefined);
+    },
+    [qc, flush],
+  );
+
+  // Beim Verlassen der Seite offene Antworten ins Profil übernehmen.
+  React.useEffect(() => () => void flush().catch(() => undefined), [flush]);
+
+  return { answer, flush };
 }
 
 export function useDeleteAllData() {
