@@ -1,5 +1,5 @@
 /**
- * Deterministische Berechnung des Geschmacksprofils aus den zehn Antworten.
+ * Deterministische Berechnung des Geschmacksprofils aus den Onboarding-Antworten (ältere Profile: bis zu zehn).
  *
  * Prinzip: Jede Antwort liefert „Signale“ (Wert 0–100 + Gewicht) für einzelne
  * Profilmerkmale. Das Merkmal ist der gewichtete Mittelwert aller Signale plus

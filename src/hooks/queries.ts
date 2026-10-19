@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "sonner";
 import { computeMatch } from "@/lib/matching";
+import { isAuthLost, recoverSession } from "@/lib/auth/session";
 import { describeError } from "@/lib/errors";
 import { ai, repository } from "@/services";
 import { completeOnboarding, relearnProfile } from "@/services/taste-service";
@@ -33,7 +34,15 @@ export function useTasteProfile() {
 export function useCompleteOnboarding() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (answers: TasteAnswers) => completeOnboarding(repository, answers),
+    mutationFn: async (answers: TasteAnswers) => {
+      try {
+        return await completeOnboarding(repository, answers);
+      } catch (err) {
+        // Anmeldung im Browser verloren (z. B. strenge Safari-Einstellungen) → reparieren und einmal neu versuchen.
+        if (repository.kind === "supabase" && isAuthLost(err) && (await recoverSession())) return completeOnboarding(repository, answers);
+        throw err;
+      }
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.profile }),
   });
 }

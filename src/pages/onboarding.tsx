@@ -138,6 +138,11 @@ function OnboardingFlow({ initial, hasProfile }: { initial: Partial<TasteAnswers
         </AnimatePresence>
 
         <div className="sticky bottom-0 mt-6 bg-gradient-to-t from-ivory via-ivory to-ivory/0 pt-6 pb-6">
+          {isLast && complete.isError && (
+            <p role="alert" className="mb-3 rounded-2xl bg-danger/10 px-4 py-3 text-[14px] leading-snug text-danger">
+              Speichern hat nicht geklappt. Deine Antworten sind noch da – tippe einfach noch einmal.
+            </p>
+          )}
           <Button type="submit" block disabled={!answered || complete.isPending}>
             {complete.isPending ? "Wir lernen deinen Geschmack kennen …" : isLast ? (editing ? "Änderungen speichern" : "Mein Profil erstellen") : "Weiter"}
             {!complete.isPending && <ArrowRight />}

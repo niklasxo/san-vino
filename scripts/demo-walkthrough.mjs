@@ -26,9 +26,9 @@ await page.getByRole("button", { name: /Meinen Geschmack entdecken/ }).click();
 await shot("02-q1");
 const answers = [
   "Ein bisschen süß ist perfekt", "Lieber mild und ausgewogen", ["Erdbeeren und Kirschen", "Brombeeren und dunkle Früchte"],
-  "Gerne intensiv", "In kleinen Mengen okay", ["Fruchtige Cocktails", "Kaffee oder Espresso"], "Fruchtig und süß",
-  "Manchmal ganz angenehm", "Rotwein", "„Fruchtig, weich und unkompliziert“",
+  "Gerne intensiv", "In kleinen Mengen okay", "Rotwein",
 ];
+const LAST = answers.length - 1;
 for (const [i, a] of answers.entries()) {
   if (Array.isArray(a)) {
     for (const x of a) await page.getByRole("checkbox", { name: x }).click();
@@ -36,7 +36,7 @@ for (const [i, a] of answers.entries()) {
     await page.getByRole("button", { name: /^Weiter/ }).click();
   } else {
     await page.getByRole("radio", { name: a }).click();
-    if (i === 9) { await shot("04-q10"); await page.getByRole("button", { name: /Mein Profil erstellen/ }).click(); }
+    if (i === LAST) { await shot("04-q-last"); await page.getByRole("button", { name: /Mein Profil erstellen/ }).click(); }
     else await page.getByRole("button", { name: /^Weiter/ }).click();
   }
   await page.waitForTimeout(450);

@@ -1,5 +1,8 @@
 /**
- * Die zehn Geschmacksfragen. Kein Weinwissen nötig.
+ * Die Geschmacksfragen. Kein Weinwissen nötig.
+ * Im Onboarding werden nur die 6 aussagekräftigsten gestellt (ONBOARDING_KEYS); die übrigen bleiben
+ * definiert, damit ältere gespeicherte Antworten weiter gelesen und berechnet werden können.
+ * Feinere Einstellung (Würze, Holz …) übernehmen die optionalen Swipe-Fragen.
  * IDs sind stabil und werden in Supabase gespeichert – nicht umbenennen.
  */
 export type QuestionKind = "single" | "multi";
@@ -35,7 +38,10 @@ export type QuestionKey = (typeof QUESTION_KEYS)[number];
 
 export type TasteAnswers = Partial<Record<QuestionKey, string | string[]>>;
 
-export const QUESTIONS: TasteQuestion[] = [
+/** Die Fragen im Onboarding – Reihenfolge = Anzeigereihenfolge. */
+export const ONBOARDING_KEYS = ["q1_sweetness", "q2_acidity", "q3_fruits", "q4_intensity", "q5_bitterness", "q9_wine_type"] as const;
+
+const ALL_QUESTIONS: TasteQuestion[] = [
   {
     key: "q1_sweetness",
     kind: "single",
@@ -161,6 +167,8 @@ export const QUESTIONS: TasteQuestion[] = [
     ],
   },
 ];
+
+export const QUESTIONS: TasteQuestion[] = ONBOARDING_KEYS.map((key) => ALL_QUESTIONS.find((q) => q.key === key)!);
 
 export function isAnswered(q: TasteQuestion, answer: string | string[] | undefined): boolean {
   if (answer == null) return false;

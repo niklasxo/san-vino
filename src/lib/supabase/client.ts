@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { config, isSupabaseConfigured } from "@/lib/config";
+import { createResilientStorage } from "./resilient-storage";
 
 let client: SupabaseClient | null = null;
 
@@ -18,6 +19,8 @@ export function getSupabase(): SupabaseClient {
       autoRefreshToken: true,
       detectSessionInUrl: false,
       storageKey: "vino-session",
+      // Fällt localStorage aus oder verliert Einträge, bleibt die Sitzung im Arbeitsspeicher erhalten.
+      storage: createResilientStorage(),
     },
   });
   return client;

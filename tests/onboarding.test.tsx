@@ -29,7 +29,7 @@ function setup() {
 }
 
 describe("Geschmacks-Onboarding (UI)", () => {
-  it("führt durch zehn Fragen und speichert Antworten + Profil", async () => {
+  it("führt durch sechs Fragen und speichert Antworten + Profil", async () => {
     const user = userEvent.setup();
     setup();
     const single = async (name: string, last = false) => {
@@ -42,28 +42,23 @@ describe("Geschmacks-Onboarding (UI)", () => {
       await user.click(screen.getByRole("button", { name: /Weiter/ }));
     };
 
-    expect(await screen.findByText("Frage 1 von 10")).toBeInTheDocument();
+    expect(await screen.findByText("Frage 1 von 6")).toBeInTheDocument();
     // Ohne Auswahl ist „Weiter“ gesperrt, mit Auswahl bleibt man auf der Frage, bis man tippt.
     expect(screen.getByRole("button", { name: /^Weiter/ })).toBeDisabled();
     await user.click(screen.getByRole("radio", { name: "Möglichst trocken und wenig süß" }));
     await new Promise((r) => setTimeout(r, 500));
-    expect(screen.getByText("Frage 1 von 10")).toBeInTheDocument();
+    expect(screen.getByText("Frage 1 von 6")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /^Weiter/ }));
-    await screen.findByText("Frage 2 von 10");
+    await screen.findByText("Frage 2 von 6");
     await single("Ein bisschen Säure finde ich gut");
-    await screen.findByText("Frage 3 von 10");
+    await screen.findByText("Frage 3 von 6");
     // Mehrfachauswahl: Weiter erst nach Auswahl aktiv
     expect(screen.getByRole("button", { name: /Weiter/ })).toBeDisabled();
     await multi(["Brombeeren und dunkle Früchte"]);
     await single("Je kräftiger, desto besser");
     await single("Ich liebe bittere Aromen");
-    await screen.findByText("Frage 6 von 10");
-    await multi(["Kaffee oder Espresso"]);
-    await single("Kräftig und intensiv");
-    await single("Ich liebe solche Aromen");
-    await single("Rotwein");
-    await screen.findByText("Frage 10 von 10");
-    await single("„Kräftig, würzig und intensiv“", true);
+    await screen.findByText("Frage 6 von 6");
+    await single("Rotwein", true);
     await user.click(screen.getByRole("button", { name: /Mein Profil erstellen/ }));
 
     expect(await screen.findByText("Ergebnis-Seite")).toBeInTheDocument();

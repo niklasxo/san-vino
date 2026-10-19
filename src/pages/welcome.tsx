@@ -48,7 +48,7 @@ export default function WelcomePage() {
           Meinen Geschmack entdecken <ArrowRight />
         </Button>
         <p className="mt-4 flex items-center justify-center gap-1.5 text-[13px] text-taupe">
-          <Clock className="size-3.5" /> Dauert nur etwa 2 Minuten
+          <Clock className="size-3.5" /> Nur 6 kurze Fragen – dauert etwa 1 Minute
         </p>
       </motion.div>
     </main>

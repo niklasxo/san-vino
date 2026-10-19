@@ -112,7 +112,7 @@ export default function TastePage() {
       </section>
 
       <section className="mt-6 overflow-hidden rounded-[1.75rem] border border-line/60 bg-white/60">
-        <MenuRow icon={<RefreshCcw />} label="Geschmack neu einstellen" text="Alle zehn Fragen noch einmal von vorn" onClick={() => navigate("/onboarding?modus=neu")} />
+        <MenuRow icon={<RefreshCcw />} label="Geschmack neu einstellen" text="Alle Startfragen noch einmal von vorn" onClick={() => navigate("/onboarding?modus=neu")} />
         <MenuRow icon={<PencilLine />} label="Meine Antworten bearbeiten" text="Einzelne Antworten anpassen" onClick={() => navigate("/onboarding?modus=bearbeiten")} />
         <MenuRow icon={<Star />} label="Meine Bewertungen ansehen" text={`${ratedCount} ${ratedCount === 1 ? "Bewertung" : "Bewertungen"}`} to="/geschmack/bewertungen" />
         <ConfirmDialog
@@ -120,7 +120,7 @@ export default function TastePage() {
           title="Profil wirklich zurücksetzen?"
           description={
             <>
-              <p>Deine zehn Antworten, deine Swipe-Antworten und dein berechnetes Geschmacksprofil werden gelöscht. Danach startest du wieder mit dem Fragebogen.</p>
+              <p>Deine Antworten auf die Startfragen, deine Swipe-Antworten und dein berechnetes Geschmacksprofil werden gelöscht. Danach startest du wieder mit dem Fragebogen.</p>
               <p>Deine gespeicherten Weine und Bewertungen bleiben erhalten und fließen in dein neues Profil wieder ein.</p>
             </>
           }

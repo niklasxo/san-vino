@@ -9,9 +9,9 @@ import { tasteAnswersSchema } from "@/lib/validation/answers";
 import { DRY_BOLD_ANSWERS, FRESH_ANSWERS, FRUITY_SWEET_ANSWERS } from "./helpers";
 
 describe("Fragebogen", () => {
-  it("hat genau zehn Fragen mit eindeutigen Schlüsseln", () => {
-    expect(QUESTIONS).toHaveLength(10);
-    expect(new Set(QUESTIONS.map((q) => q.key)).size).toBe(10);
+  it("stellt im Onboarding genau sechs Fragen mit eindeutigen Schlüsseln", () => {
+    expect(QUESTIONS).toHaveLength(6);
+    expect(new Set(QUESTIONS.map((q) => q.key)).size).toBe(6);
   });
   it("erkennt vollständige und unvollständige Antworten", () => {
     expect(isComplete(FRUITY_SWEET_ANSWERS)).toBe(true);

@@ -42,6 +42,33 @@ export function ensureAnonymousSession(): Promise<Session> {
   return pending;
 }
 
+/**
+ * Sitzung reparieren, falls der Browser sie verloren hat (Anfragen kämen sonst ohne Anmeldung an).
+ * Liefert true, wenn danach wieder eine gültige Sitzung vorhanden ist.
+ */
+export async function recoverSession(): Promise<boolean> {
+  const supabase = getSupabase();
+  const { data } = await supabase.auth.getSession();
+  if (data.session) return true;
+  const known = pending ? await pending.catch(() => null) : null;
+  if (known) {
+    const { data: restored } = await supabase.auth.setSession({ access_token: known.access_token, refresh_token: known.refresh_token });
+    if (restored.session) {
+      pending = Promise.resolve(restored.session);
+      return true;
+    }
+  }
+  pending = null; // neue anonyme Sitzung beim nächsten Zugriff
+  await ensureAnonymousSession();
+  return true;
+}
+
+/** Fehler, die auf eine verlorene Anmeldung hindeuten (PostgREST: keine Rechte / ungültiges JWT). */
+export function isAuthLost(err: unknown): boolean {
+  const code = (err as { code?: string } | null)?.code ?? "";
+  return code === "42501" || code.startsWith("PGRST3") || code === "unauthorized";
+}
+
 export async function currentUserId(): Promise<string> {
   const session = await ensureAnonymousSession();
   return session.user.id;

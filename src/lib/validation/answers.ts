@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { QUESTIONS } from "@/lib/taste-profile/questions";
 
-/** Zod-Schema der zehn Antworten – direkt aus der Fragendefinition erzeugt. */
+/** Zod-Schema der Onboarding-Antworten – direkt aus der Fragendefinition erzeugt. */
 export const tasteAnswersSchema = z.object(
   Object.fromEntries(
     QUESTIONS.map((q) => {
