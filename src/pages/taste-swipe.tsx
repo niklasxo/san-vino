@@ -92,8 +92,9 @@ export default function TasteSwipePage() {
       ) : (
         <>
           <div className="pt-4">
+            <h1 className="sr-only">Geschmack verfeinern</h1>
             <div className="flex items-baseline justify-between">
-              <p className="text-[12px] font-semibold tracking-[0.18em] text-gold uppercase">Frage {index + 1} von {deck.length}</p>
+              <p className="text-[12px] font-semibold tracking-[0.18em] text-gold-ink uppercase">Frage {index + 1} von {deck.length}</p>
               <p className="text-[13px] text-taupe">{answeredTotal} / {SWIPE_QUESTIONS.length} beantwortet</p>
             </div>
             <div className="mt-2 h-1 overflow-hidden rounded-full bg-cream-deep">

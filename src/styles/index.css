@@ -10,9 +10,12 @@
   --color-ivory: #faf7f2;
   --color-cream: #f2ece4;
   --color-cream-deep: #e9e0d4;
-  --color-taupe: #887d77;
+  /* Nebentexte: #887d77 lag auf Creme bei 3,4:1 – #6b625d schafft 4,6:1 (WCAG AA), sieht fast gleich aus */
+  --color-taupe: #6b625d;
   --color-gold: #c6a878;
   --color-gold-soft: #e3d3b5;
+  /* Gold als kleine Schrift auf hellem Grund (Überschriften-Labels): #c6a878 hat dort nur 2:1 */
+  --color-gold-ink: #7f6235;
   --color-charcoal: #242022;
   --color-success: #587b65;
   --color-line: #e4dace;

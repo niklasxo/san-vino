@@ -52,7 +52,7 @@ export function ExplanationPanel({
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <div>
-        <h3 className="font-serif text-[22px] leading-snug text-charcoal">{explanation.headline}</h3>
+        <h2 className="font-serif text-[22px] leading-snug text-charcoal">{explanation.headline}</h2>
         <p className="mt-2.5 text-[15px] leading-relaxed text-charcoal/85">{explanation.why}</p>
       </div>
       <ReasonList title="Das könnte dir gefallen" items={explanation.might_like} positive />

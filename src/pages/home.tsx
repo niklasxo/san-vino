@@ -180,7 +180,7 @@ export default function HomePage() {
 
       {/* Tipp */}
       <motion.section {...rise(6)} className="mt-8 rounded-[1.75rem] bg-cream/80 p-5">
-        <p className="flex items-center gap-2 text-[12px] font-semibold tracking-[0.18em] text-gold uppercase">
+        <p className="flex items-center gap-2 text-[12px] font-semibold tracking-[0.18em] text-gold-ink uppercase">
           <Lightbulb className="size-4" /> Kleiner Tipp für dich
         </p>
         <p className="mt-3 font-serif text-[20px] text-charcoal">{tip.title}</p>

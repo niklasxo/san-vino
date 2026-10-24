@@ -77,3 +77,9 @@
 - Gemini API: kostenloser Tarif (Limits pro Minute/Tag; Google darf Gratis-Anfragen zur Verbesserung nutzen)
 - Supabase Free: kostenlos, pausiert das Projekt nach ca. 1 Woche ohne Nutzung (im Dashboard wieder starten)
 - Vercel Hobby: kostenlos für private, nicht-kommerzielle Nutzung
+
+## Stand 24.10.
+- [x] Link-Vorschau (WhatsApp & Co.): `public/og.jpg` im App-Look + og-/twitter-Tags in `index.html`. Neu erzeugen: `node scripts/og-card.mjs`
+- [x] Barrierefreiheit (axe, alle Bildschirme im Demo-Modus): Taupe #6b625d (4,6:1), Gold für kleine Labels `text-gold-ink`,
+      Fortschrittsbalken benannt, Überschriften-Reihenfolge, `<main>` auf Fehlerseiten, Button-Namen = sichtbarer Text,
+      schwächere Weine per gestricheltem Rand statt Transparenz. Ausnahme: Logo-„SAN“ (Logos sind von der Kontrastregel frei)

@@ -21,7 +21,7 @@ export default function OnboardingResultPage() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5 pt-safe pb-safe">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="pt-12 pb-7 text-center">
-        <p className="text-[12px] font-semibold tracking-[0.2em] text-gold uppercase">Geschafft</p>
+        <p className="text-[12px] font-semibold tracking-[0.2em] text-gold-ink uppercase">Geschafft</p>
         <h1 className="mt-3 text-balance font-serif text-[32px] leading-[1.1] text-charcoal">Wir haben deinen Geschmack kennengelernt.</h1>
         <p className="mt-3 text-[16px] text-taupe">Das könnte deine Weinwelt sein.</p>
       </motion.div>

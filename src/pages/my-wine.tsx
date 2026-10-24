@@ -110,8 +110,9 @@ export default function MyWinePage() {
 }
 
 function StyleRow({ rec, muted }: { rec: StyleRecommendation; muted?: boolean }) {
+  // Weniger passende Weine: zurückgenommen durch gestrichelten Rand statt Transparenz – so bleibt der Text lesbar (Kontrast).
   return (
-    <div className={`rounded-[1.5rem] border border-line/60 bg-white/60 p-4 shadow-[var(--shadow-soft)] ${muted ? "opacity-80" : ""}`}>
+    <div className={`rounded-[1.5rem] border p-4 ${muted ? "border-dashed border-line bg-transparent" : "border-line/60 bg-white/60 shadow-[var(--shadow-soft)]"}`}>
       <div className="flex items-start gap-3">
         <WineGlyph type={rec.style.type} className="size-10 shrink-0" />
         <div className="min-w-0 flex-1">

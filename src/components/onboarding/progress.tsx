@@ -9,7 +9,7 @@ export function OnboardingProgress({ current, total }: { current: number; total:
         </span>
         <span className="text-taupe">{Math.round((current / total) * 100)} %</span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-cream" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={current}>
+      <div className="h-1.5 overflow-hidden rounded-full bg-cream" role="progressbar" aria-label="Fortschritt" aria-valuemin={1} aria-valuemax={total} aria-valuenow={current}>
         <motion.div
           className="h-full rounded-full bg-gradient-to-r from-burgundy to-burgundy-soft"
           initial={false}

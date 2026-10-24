@@ -38,11 +38,11 @@ export function WineActions({
             <Heart className={favorite ? "fill-burgundy" : ""} /> {favorite ? "Favorit" : "Favorisieren"}
           </Button>
         ) : (
-          <Button size="md" className="min-w-0 flex-1" onClick={onSave} disabled={busy} aria-label="Zu meinen Weinen hinzufügen">
+          <Button size="md" className="min-w-0 flex-1" onClick={onSave} disabled={busy} aria-label="Speichern: Zu meinen Weinen hinzufügen">
             <Wine /> Speichern
           </Button>
         )}
-        <Button variant={saved ? "primary" : "secondary"} size="md" className="min-w-0 flex-1" onClick={onTried} disabled={busy} aria-label={tried ? "Bewertung ändern" : "Habe ich probiert"}>
+        <Button variant={saved ? "primary" : "secondary"} size="md" className="min-w-0 flex-1" onClick={onTried} disabled={busy} aria-label={tried ? "Bewertet: Bewertung ändern" : "Probiert: Habe ich probiert"}>
           {tried ? <Check /> : null} {tried ? "Bewertet" : "Probiert"}
         </Button>
         <Button variant="outline" size="icon" className="size-12" onClick={onScanAgain} aria-label="Noch einen Wein scannen">

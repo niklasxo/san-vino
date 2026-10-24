@@ -26,7 +26,7 @@ export function SplashScreen({ label = "Einen Moment …" }: { label?: string })
 export function FullScreenError({ error, onRetry, title, text, actionLabel }: { error?: unknown; onRetry?: () => void; title?: string; text?: string; actionLabel?: string }) {
   const d = describeError(error);
   return (
-    <div className="grid min-h-dvh place-items-center bg-ivory px-8 text-center">
+    <main className="grid min-h-dvh place-items-center bg-ivory px-8 text-center">
       <div className="flex max-w-sm flex-col items-center">
         <span className="mb-6 grid size-16 place-items-center rounded-full bg-cream text-burgundy">
           <CloudOff className="size-7" />
@@ -39,7 +39,7 @@ export function FullScreenError({ error, onRetry, title, text, actionLabel }: { 
           </Button>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -47,7 +47,7 @@ export function EmptyState({ icon, title, text, action }: { icon: React.ReactNod
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center rounded-[1.75rem] border border-dashed border-line px-6 py-10 text-center">
       <span className="mb-4 grid size-14 place-items-center rounded-full bg-cream text-burgundy [&_svg]:size-6">{icon}</span>
-      <h3 className="font-serif text-[20px] text-charcoal">{title}</h3>
+      <h2 className="font-serif text-[20px] text-charcoal">{title}</h2>
       <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-taupe">{text}</p>
       {action && <div className="mt-6">{action}</div>}
     </motion.div>

@@ -41,7 +41,7 @@ export function WineDetailView({
   return (
     <div>
       <motion.div {...section(0)} className="pt-2 text-center">
-        {headline && <p className="text-[12px] font-semibold tracking-[0.2em] text-gold uppercase">{headline}</p>}
+        {headline && <p className="text-[12px] font-semibold tracking-[0.2em] text-gold-ink uppercase">{headline}</p>}
         <div className="mt-4 flex justify-center">
           <WineGlyph type={wine.wine_type} className="size-14" />
         </div>
