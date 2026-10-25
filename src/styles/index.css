@@ -10,8 +10,11 @@
   --color-ivory: #faf7f2;
   --color-cream: #f2ece4;
   --color-cream-deep: #e9e0d4;
-  --color-taupe: #887d77;
+  /* secondary text: 5:1 on ivory, 4.7:1 on cream (WCAG AA) */
+  --color-taupe: #736962;
   --color-gold: #c6a878;
+  /* gold for small text (eyebrows): 4.7:1 on ivory; --color-gold stays for icons and surfaces */
+  --color-gold-ink: #8a6a35;
   --color-gold-soft: #e3d3b5;
   --color-charcoal: #242022;
   --color-success: #587b65;

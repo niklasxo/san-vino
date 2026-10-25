@@ -26,9 +26,10 @@ export function SplashScreen({ label = "Einen Moment …" }: { label?: string })
 export function FullScreenError({ error, onRetry, title, text, actionLabel }: { error?: unknown; onRetry?: () => void; title?: string; text?: string; actionLabel?: string }) {
   const d = describeError(error);
   return (
-    <div className="grid min-h-dvh place-items-center bg-ivory px-8 text-center">
+    // A page of its own (404, errors): its content is the main landmark.
+    <main className="grid min-h-dvh place-items-center bg-ivory px-8 text-center">
       <div className="flex max-w-sm flex-col items-center">
-        <span className="mb-6 grid size-16 place-items-center rounded-full bg-cream text-burgundy">
+        <span className="mb-6 grid size-16 place-items-center rounded-full bg-cream text-burgundy" aria-hidden="true">
           <CloudOff className="size-7" />
         </span>
         <h1 className="font-serif text-[26px] leading-tight text-charcoal">{title ?? d.title}</h1>
@@ -39,7 +40,7 @@ export function FullScreenError({ error, onRetry, title, text, actionLabel }: { 
           </Button>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -45,7 +45,7 @@ export function TopBar({ title, back = true, right, onBack }: { title?: string; 
 export function PageHeading({ eyebrow, title, subtitle, className }: { eyebrow?: React.ReactNode; title: React.ReactNode; subtitle?: React.ReactNode; className?: string }) {
   return (
     <div className={cn("pt-6 pb-6", className)}>
-      {eyebrow && <p className="mb-3 text-[12px] font-semibold tracking-[0.18em] text-gold uppercase">{eyebrow}</p>}
+      {eyebrow && <p className="mb-3 text-[12px] font-semibold tracking-[0.18em] text-gold-ink uppercase">{eyebrow}</p>}
       <h1 className="text-balance font-serif text-[34px] leading-[1.08] text-charcoal sm:text-[40px]">{title}</h1>
       {subtitle && <p className="mt-3 text-pretty text-[16px] leading-relaxed text-taupe">{subtitle}</p>}
     </div>
