@@ -16,6 +16,7 @@ import { describeError } from "@/lib/errors";
 import { describeProfile, PREFERABLE_TYPE_LABEL, profileCertainty } from "@/lib/taste-profile/describe";
 import { SWIPE_QUESTIONS } from "@/lib/taste-profile/swipes";
 import { determineTasteType } from "@/lib/taste-profile/taste-type";
+import { LegalFooter } from "./legal-footer";
 import { isDemo } from "@/services";
 
 export default function TastePage() {
@@ -179,6 +180,7 @@ export default function TastePage() {
           />
         )}
       </section>
+      <LegalFooter />
     </Page>
   );
 }

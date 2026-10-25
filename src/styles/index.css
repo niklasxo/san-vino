@@ -123,3 +123,45 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Rechtsseiten (pages/impressum.tsx, datenschutz.tsx) */
+.legal h2 {
+  margin-top: 1.4rem;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 20px;
+  color: var(--color-charcoal);
+}
+.legal ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.legal a {
+  color: var(--color-burgundy);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+/* Sprachmenü (Widget von niklasschneider.me, lib/translate.ts) im SAN-VINO-Look */
+.sv-lang {
+  --nt-bg: var(--color-ivory);
+  --nt-fg: var(--color-charcoal);
+  --nt-accent: var(--color-burgundy);
+  --nt-accent-fg: var(--color-ivory);
+  --nt-hover: var(--color-cream);
+  --nt-radius: 999px;
+  --nt-list-radius: 1.25rem;
+  --nt-border: 1px solid var(--color-line);
+  --nt-shadow: none;
+  --nt-list-shadow: 0 18px 40px -16px rgb(36 32 34 / 0.35);
+  --nt-focus: var(--color-gold);
+  font-size: 13px;
+}
+.sv-lang .nt-btn {
+  min-height: 40px;
+  font-weight: 500;
+}
+.sv-lang .nt-list {
+  top: auto;
+  bottom: calc(100% + 8px);
+}

@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { startTranslation } from "@/lib/translate";
 import App from "@/app/App";
 import "@/styles/index.css";
 
@@ -68,3 +69,6 @@ if ("serviceWorker" in navigator) {
   });
   setInterval(checkForUpdate, 30 * 60 * 1000);
 }
+
+// Früher eine andere Sprache gewählt? Dann gleich übersetzen (lib/translate.ts).
+startTranslation();

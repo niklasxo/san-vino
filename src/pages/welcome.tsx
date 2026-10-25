@@ -5,6 +5,7 @@ import { HeroArt } from "@/components/brand/hero-art";
 import { Logo } from "@/components/brand/logo";
 import { SplashScreen } from "@/components/layout/states";
 import { Button } from "@/components/ui/button";
+import { LegalFooter } from "./legal-footer";
 import { useProfileState } from "@/hooks/queries";
 
 const fade = (delay: number) => ({
@@ -50,6 +51,7 @@ export default function WelcomePage() {
         <p className="mt-4 flex items-center justify-center gap-1.5 text-[13px] text-taupe">
           <Clock className="size-3.5" /> Nur 6 kurze Fragen – dauert etwa 1 Minute
         </p>
+        <LegalFooter className="mt-6" />
       </motion.div>
     </main>
   );

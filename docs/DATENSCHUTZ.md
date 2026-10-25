@@ -1,4 +1,4 @@
-# Datenflüsse & Datenschutz (Grundlage für die spätere Datenschutzerklärung)
+# Datenflüsse & Datenschutz (Grundlage der Datenschutzerklärung `src/pages/datenschutz.tsx`)
 
 > Kein Rechtsrat – diese Übersicht dokumentiert technisch, welche Daten wohin fließen.
 
@@ -20,3 +20,5 @@
 - Schriften werden lokal ausgeliefert (kein Google-Fonts-Aufruf).
 - Vor Veröffentlichung: Auftragsverarbeitung mit Supabase und Google prüfen; **kostenloser Gemini-Tarif:** Google darf Ein- und Ausgaben laut API-Bedingungen zur Verbesserung nutzen (ggf. von Menschen geprüft) – für die öffentliche Version ggf. auf den bezahlten Tarif wechseln,, Serverregion EU wählen,
   Datenschutzerklärung & Impressum ergänzen, Speicherdauer für Fotos festlegen (z. B. automatische Löschung nach X Tagen).
+- Seit 2026-10-25 online: Impressum (`/impressum`) und Datenschutz (`/datenschutz`), verlinkt auf Willkommen und „Mein Geschmack“. Ändert sich ein Datenfluss, beide Dateien mitziehen.
+- Sprachmenü (`src/lib/translate.ts`): Texte gehen bei gewählter Fremdsprache an niklasschneider.me/api/translate (Cloudflare Workers AI); Sprache im Local Storage `ns.tlang`.
