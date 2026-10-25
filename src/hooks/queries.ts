@@ -36,8 +36,8 @@ function queueRelearn(qc: ReturnType<typeof useQueryClient>) {
   return run;
 }
 
-export function useProfileState() {
-  return useQuery({ queryKey: keys.profile, queryFn: () => repository.getProfileState(), staleTime: 60_000 });
+export function useProfileState({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({ queryKey: keys.profile, queryFn: () => repository.getProfileState(), staleTime: 60_000, enabled });
 }
 
 /** Das aktuell gültige (gelernte) Geschmacksprofil. */

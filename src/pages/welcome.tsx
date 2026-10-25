@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ArrowRight, Clock } from "lucide-react";
 import { motion } from "motion/react";
 import { Navigate, useNavigate } from "react-router";
@@ -7,6 +8,7 @@ import { SplashScreen } from "@/components/layout/states";
 import { Button } from "@/components/ui/button";
 import { LegalFooter } from "./legal-footer";
 import { useProfileState } from "@/hooks/queries";
+import { storedUserId } from "@/lib/query-cache";
 
 const fade = (delay: number) => ({
   initial: { opacity: 0.4, y: 10 },
@@ -16,8 +18,11 @@ const fade = (delay: number) => ({
 
 export default function WelcomePage() {
   const navigate = useNavigate();
-  const { data, isPending } = useProfileState();
-  if (isPending) return <SplashScreen />;
+  // A first visit (no session stored yet) can't have a finished profile: show the page at once instead
+  // of waiting for the anonymous sign-in and the profile (RootLayout lets /willkommen through for that).
+  const [fresh] = useState(() => !storedUserId());
+  const { data, isPending } = useProfileState({ enabled: !fresh });
+  if (isPending && !fresh) return <SplashScreen />;
   if (data?.onboardingCompleted) return <Navigate to="/" replace />;
 
   return (
